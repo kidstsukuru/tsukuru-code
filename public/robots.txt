@@ -1,0 +1,13 @@
+# robots.txt for Tsukuru Code
+# つくるコード
+
+User-agent: *
+Allow: /
+
+# サイトマップ（将来追加予定）
+# Sitemap: https://tsukuru-code.example.com/sitemap.xml
+
+# クロール不要なパス
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /admin/

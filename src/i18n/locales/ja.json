@@ -1,0 +1,121 @@
+{
+  "common": {
+    "login": "ログイン",
+    "register": "新規登録",
+    "logout": "ログアウト",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "name": "名前",
+    "confirmPassword": "パスワード（確認）",
+    "submit": "送信",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "back": "戻る",
+    "next": "次へ",
+    "loading": "読み込み中..."
+  },
+  "home": {
+    "title": "ゲームみたいに楽しく学ぼう！",
+    "subtitle": "プログラミングの世界へ！",
+    "description": "「Tsukuru code」へようこそ！パズルを解いたり、キャラクターを動かしながら、プログラミングの基礎をマスターしよう。",
+    "startAdventure": "冒険をはじめる！",
+    "popularCourses": "人気のコース",
+    "scratchIntro": "Scratch入門",
+    "scratchDesc": "ブロックを組み合わせるだけで、アニメやゲームが作れる！",
+    "pythonAdventure": "Pythonアドベンチャー",
+    "pythonDesc": "AIやWebアプリで使われる本格的な言語に挑戦！ (準備中)",
+    "webExplorer": "Webサイト探検隊",
+    "webDesc": "自分だけのホームページを作ってみよう！ (準備中)"
+  },
+  "auth": {
+    "loginTitle": "ログイン",
+    "registerTitle": "新規登録",
+    "loginSubtitle": "アカウントにログイン",
+    "registerSubtitle": "新しいアカウントを作成",
+    "noAccount": "アカウントをお持ちでない方",
+    "hasAccount": "すでにアカウントをお持ちの方",
+    "loginSuccess": "ログインしました",
+    "registerSuccess": "登録が完了しました",
+    "logoutSuccess": "ログアウトしました",
+    "loginFailed": "ログインに失敗しました",
+    "registerFailed": "登録に失敗しました"
+  },
+  "validation": {
+    "required": {
+      "email": "メールアドレスを入力してください",
+      "password": "パスワードを入力してください",
+      "name": "名前を入力してください",
+      "confirmPassword": "パスワード（確認）を入力してください"
+    },
+    "invalid": {
+      "email": "正しいメールアドレスを入力してください"
+    },
+    "min": {
+      "password": "パスワードは6文字以上で入力してください",
+      "name": "名前は2文字以上で入力してください"
+    },
+    "passwordMismatch": "パスワードが一致しません"
+  },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "welcome": "{{name}}さん、おかえりなさい！",
+    "stats": {
+      "level": "レベル",
+      "xp": "経験値",
+      "loginStreak": "連続ログイン日数",
+      "days": "日"
+    },
+    "myCourses": "マイコース",
+    "progress": "進捗",
+    "startLearning": "学習を始める",
+    "continue": "続きから",
+    "badges": "獲得バッジ"
+  },
+  "course": {
+    "lessons": "レッスン",
+    "completed": "完了",
+    "inProgress": "学習中",
+    "notStarted": "未開始",
+    "start": "開始する",
+    "continue": "続きから",
+    "difficulty": {
+      "beginner": "初心者向け",
+      "intermediate": "中級者向け",
+      "advanced": "上級者向け"
+    },
+    "estimatedTime": "推定時間",
+    "hours": "時間"
+  },
+  "creations": {
+    "title": "クリエイターズワールド",
+    "description": "みんなの作品を見たり、自分の作品を共有しよう！",
+    "myCreations": "自分の作品",
+    "allCreations": "みんなの作品",
+    "create": "作品を作る",
+    "share": "共有する",
+    "like": "いいね",
+    "comments": "コメント"
+  },
+  "badges": {
+    "login_5_days": "5日間ログイン",
+    "login_10_days": "10日間ログイン",
+    "first_course": "はじめてのコース",
+    "first_lesson": "はじめてのレッスン",
+    "perfect_lesson": "パーフェクトレッスン",
+    "perfect_score": "パーフェクトスコア",
+    "bug_hunter": "バグハンター",
+    "code_master": "コードマスター",
+    "first_login": "初ログイン",
+    "acquired": "獲得済み",
+    "notAcquired": "未獲得",
+    "congratulations": "おめでとうございます！"
+  },
+  "errors": {
+    "networkError": "ネットワークエラーが発生しました",
+    "serverError": "サーバーエラーが発生しました",
+    "unknownError": "予期しないエラーが発生しました",
+    "notFound": "ページが見つかりません"
+  }
+}

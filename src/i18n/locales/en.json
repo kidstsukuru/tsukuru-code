@@ -1,0 +1,121 @@
+{
+  "common": {
+    "login": "Login",
+    "register": "Sign Up",
+    "logout": "Logout",
+    "email": "Email Address",
+    "password": "Password",
+    "name": "Name",
+    "confirmPassword": "Confirm Password",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading..."
+  },
+  "home": {
+    "title": "Learn Programming Like a Game!",
+    "subtitle": "Welcome to the World of Coding!",
+    "description": "Welcome to Tsukuru Code! Master programming fundamentals by solving puzzles and controlling characters.",
+    "startAdventure": "Start Your Adventure!",
+    "popularCourses": "Popular Courses",
+    "scratchIntro": "Intro to Scratch",
+    "scratchDesc": "Create animations and games just by combining blocks!",
+    "pythonAdventure": "Python Adventure",
+    "pythonDesc": "Challenge yourself with a powerful language used in AI and web apps! (Coming Soon)",
+    "webExplorer": "Web Explorer",
+    "webDesc": "Create your own website! (Coming Soon)"
+  },
+  "auth": {
+    "loginTitle": "Login",
+    "registerTitle": "Sign Up",
+    "loginSubtitle": "Sign in to your account",
+    "registerSubtitle": "Create a new account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginSuccess": "Successfully logged in",
+    "registerSuccess": "Registration completed",
+    "logoutSuccess": "Successfully logged out",
+    "loginFailed": "Login failed",
+    "registerFailed": "Registration failed"
+  },
+  "validation": {
+    "required": {
+      "email": "Please enter your email address",
+      "password": "Please enter your password",
+      "name": "Please enter your name",
+      "confirmPassword": "Please confirm your password"
+    },
+    "invalid": {
+      "email": "Please enter a valid email address"
+    },
+    "min": {
+      "password": "Password must be at least 6 characters",
+      "name": "Name must be at least 2 characters"
+    },
+    "passwordMismatch": "Passwords do not match"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {{name}}!",
+    "stats": {
+      "level": "Level",
+      "xp": "XP",
+      "loginStreak": "Login Streak",
+      "days": "days"
+    },
+    "myCourses": "My Courses",
+    "progress": "Progress",
+    "startLearning": "Start Learning",
+    "continue": "Continue",
+    "badges": "Badges"
+  },
+  "course": {
+    "lessons": "Lessons",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "notStarted": "Not Started",
+    "start": "Start",
+    "continue": "Continue",
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "estimatedTime": "Estimated Time",
+    "hours": "hours"
+  },
+  "creations": {
+    "title": "Creators World",
+    "description": "View others' creations and share your own!",
+    "myCreations": "My Creations",
+    "allCreations": "All Creations",
+    "create": "Create",
+    "share": "Share",
+    "like": "Like",
+    "comments": "Comments"
+  },
+  "badges": {
+    "login_5_days": "5-Day Login",
+    "login_10_days": "10-Day Login",
+    "first_course": "First Course",
+    "first_lesson": "First Lesson",
+    "perfect_lesson": "Perfect Lesson",
+    "perfect_score": "Perfect Score",
+    "bug_hunter": "Bug Hunter",
+    "code_master": "Code Master",
+    "first_login": "First Login",
+    "acquired": "Acquired",
+    "notAcquired": "Not Acquired",
+    "congratulations": "Congratulations!"
+  },
+  "errors": {
+    "networkError": "Network error occurred",
+    "serverError": "Server error occurred",
+    "unknownError": "An unexpected error occurred",
+    "notFound": "Page not found"
+  }
+}
