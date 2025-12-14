@@ -1,0 +1,34 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="512" height="512" rx="110" fill="#f59e0b"/>
+
+  <!-- コードブロックアイコン -->
+  <g transform="translate(256, 256)">
+    <!-- 左の矢印 < -->
+    <path d="M -80 -60 L -140 0 L -80 60"
+          stroke="#fff"
+          stroke-width="32"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+
+    <!-- 右の矢印 > -->
+    <path d="M 80 -60 L 140 0 L 80 60"
+          stroke="#fff"
+          stroke-width="32"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+
+    <!-- 中央のスラッシュ / -->
+    <line x1="0" y1="-80" x2="0" y2="80"
+          stroke="#fff"
+          stroke-width="32"
+          stroke-linecap="round"/>
+  </g>
+
+  <!-- 下部の装飾ドット -->
+  <circle cx="256" cy="420" r="12" fill="#fff" opacity="0.8"/>
+  <circle cx="220" cy="420" r="12" fill="#fff" opacity="0.6"/>
+  <circle cx="292" cy="420" r="12" fill="#fff" opacity="0.6"/>
+</svg>

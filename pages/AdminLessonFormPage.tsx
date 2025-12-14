@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
@@ -8,6 +8,7 @@ import { getLessonById, createLesson, updateLesson, getCourseById } from '../ser
 import { Course } from '../types/index';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import RichTextEditor from '../components/common/RichTextEditor';
 
 const lessonSchema = z.object({
   id: z.string().min(1, 'レッスンIDは必須です').regex(/^[a-z0-9-]+$/, 'レッスンIDは小文字、数字、ハイフンのみ使用できます'),
@@ -33,8 +34,9 @@ const AdminLessonFormPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [course, setCourse] = useState<Course | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<LessonFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, control, watch } = useForm<LessonFormData>({
     resolver: zodResolver(lessonSchema),
     defaultValues: {
       id: '',
@@ -180,17 +182,55 @@ const AdminLessonFormPage: React.FC = () => {
 
         {/* 説明 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            説明 *
-          </label>
-          <textarea
-            {...register('description')}
-            rows={4}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            placeholder="このレッスンで学べることを説明してください"
-          />
-          {errors.description && (
-            <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              説明 *
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowPreview(false)}
+                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                  !showPreview
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                編集
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPreview(true)}
+                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                  showPreview
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                プレビュー
+              </button>
+            </div>
+          </div>
+          {!showPreview ? (
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <RichTextEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="このレッスンで学べることを説明してください"
+                  error={errors.description?.message}
+                />
+              )}
+            />
+          ) : (
+            <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 min-h-[200px]">
+              <div
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: watch('description') || '<p class="text-gray-400">プレビューする内容がありません</p>' }}
+              />
+            </div>
           )}
         </div>
 

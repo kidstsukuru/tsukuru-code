@@ -246,23 +246,6 @@ export const getLessonsByCourse = async (courseId: string) => {
   }
 };
 
-// レッスンのクイズを取得
-export const getQuizzesByLesson = async (lessonId: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('quizzes')
-      .select('*')
-      .eq('lesson_id', lessonId)
-      .order('order_index', { ascending: true });
-
-    if (error) throw error;
-    return data;
-  } catch (error: any) {
-    console.error('Error getting quizzes:', error);
-    throw new Error(error.message || 'クイズの取得に失敗しました');
-  }
-};
-
 // ====================================
 // 学習進捗関連
 // ====================================
@@ -648,5 +631,316 @@ export const checkBadgeConditions = async (userId: string) => {
   } catch (error: any) {
     console.error('Error checking badge conditions:', error);
     return [];
+  }
+};
+
+// =====================================================
+// クリエイターズワールド関連の関数
+// =====================================================
+
+/**
+ * 作品一覧を取得（公開作品のみ）
+ * @param limit 取得件数（デフォルト: 50）
+ * @param offset オフセット（ページネーション用、デフォルト: 0）
+ * @param sortBy ソート基準（plays, likes, created_at）
+ * @param userId 現在のユーザーID（いいね状態を取得するため、optional）
+ */
+export const getCreations = async (
+  limit = 50,
+  offset = 0,
+  sortBy: 'plays' | 'likes' | 'created_at' = 'created_at',
+  userId?: string
+) => {
+  try {
+    let query = supabase
+      .from('creations')
+      .select(`
+        *,
+        creator:users!creations_user_id_fkey(id, name)
+      `)
+      .eq('is_published', true)
+      .order(sortBy, { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    // いいね状態を取得（ユーザーがログインしている場合）
+    if (userId && data) {
+      const creationIds = data.map((c: any) => c.id);
+      const { data: likes } = await supabase
+        .from('creation_likes')
+        .select('creation_id')
+        .eq('user_id', userId)
+        .in('creation_id', creationIds);
+
+      const likedIds = new Set(likes?.map((l: any) => l.creation_id) || []);
+
+      return data.map((creation: any) => ({
+        ...creation,
+        is_liked: likedIds.has(creation.id),
+      }));
+    }
+
+    return data || [];
+  } catch (error: any) {
+    console.error('Error fetching creations:', error);
+    throw new Error(error.message || '作品の取得に失敗しました');
+  }
+};
+
+/**
+ * 作品詳細を取得
+ * @param creationId 作品ID
+ * @param userId 現在のユーザーID（いいね状態を取得するため、optional）
+ */
+export const getCreationById = async (creationId: string, userId?: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('creations')
+      .select(`
+        *,
+        creator:users!creations_user_id_fkey(id, name)
+      `)
+      .eq('id', creationId)
+      .single();
+
+    if (error) throw error;
+
+    // いいね状態を取得
+    if (userId) {
+      const { data: like } = await supabase
+        .from('creation_likes')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('creation_id', creationId)
+        .single();
+
+      return {
+        ...data,
+        is_liked: !!like,
+      };
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error('Error fetching creation:', error);
+    throw new Error(error.message || '作品の取得に失敗しました');
+  }
+};
+
+/**
+ * ユーザーの作品一覧を取得
+ * @param userId ユーザーID
+ * @param includeUnpublished 非公開作品も含めるか（デフォルト: false）
+ */
+export const getUserCreations = async (userId: string, includeUnpublished = false) => {
+  try {
+    let query = supabase
+      .from('creations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (!includeUnpublished) {
+      query = query.eq('is_published', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error: any) {
+    console.error('Error fetching user creations:', error);
+    throw new Error(error.message || 'ユーザーの作品取得に失敗しました');
+  }
+};
+
+/**
+ * 作品を投稿
+ * @param creation 作品データ
+ */
+export const createCreation = async (creation: {
+  user_id: string;
+  title: string;
+  description?: string;
+  thumbnail_url?: string;
+  code_url: string;
+  is_published?: boolean;
+}) => {
+  try {
+    const { data, error } = await supabase
+      .from('creations')
+      .insert({
+        ...creation,
+        plays: 0,
+        likes: 0,
+        is_published: creation.is_published ?? true,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  } catch (error: any) {
+    console.error('Error creating creation:', error);
+    throw new Error(error.message || '作品の投稿に失敗しました');
+  }
+};
+
+/**
+ * 作品を更新
+ * @param creationId 作品ID
+ * @param updates 更新データ
+ */
+export const updateCreation = async (
+  creationId: string,
+  updates: {
+    title?: string;
+    description?: string;
+    thumbnail_url?: string;
+    code_url?: string;
+    is_published?: boolean;
+  }
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('creations')
+      .update(updates)
+      .eq('id', creationId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  } catch (error: any) {
+    console.error('Error updating creation:', error);
+    throw new Error(error.message || '作品の更新に失敗しました');
+  }
+};
+
+/**
+ * 作品を削除
+ * @param creationId 作品ID
+ */
+export const deleteCreation = async (creationId: string) => {
+  try {
+    const { error } = await supabase
+      .from('creations')
+      .delete()
+      .eq('id', creationId);
+
+    if (error) throw error;
+
+    return true;
+  } catch (error: any) {
+    console.error('Error deleting creation:', error);
+    throw new Error(error.message || '作品の削除に失敗しました');
+  }
+};
+
+/**
+ * 作品にいいねを追加
+ * @param userId ユーザーID
+ * @param creationId 作品ID
+ */
+export const likeCreation = async (userId: string, creationId: string) => {
+  try {
+    const { error } = await supabase
+      .from('creation_likes')
+      .insert({
+        user_id: userId,
+        creation_id: creationId,
+      });
+
+    if (error) {
+      // 既にいいね済みの場合
+      if (error.code === '23505') {
+        throw new Error('既にいいね済みです');
+      }
+      throw error;
+    }
+
+    return true;
+  } catch (error: any) {
+    console.error('Error liking creation:', error);
+    throw new Error(error.message || 'いいねに失敗しました');
+  }
+};
+
+/**
+ * 作品のいいねを削除
+ * @param userId ユーザーID
+ * @param creationId 作品ID
+ */
+export const unlikeCreation = async (userId: string, creationId: string) => {
+  try {
+    const { error } = await supabase
+      .from('creation_likes')
+      .delete()
+      .eq('user_id', userId)
+      .eq('creation_id', creationId);
+
+    if (error) throw error;
+
+    return true;
+  } catch (error: any) {
+    console.error('Error unliking creation:', error);
+    throw new Error(error.message || 'いいね解除に失敗しました');
+  }
+};
+
+/**
+ * 作品の再生回数を記録
+ * @param creationId 作品ID
+ * @param userId ユーザーID（optional、ゲストユーザーの場合はnull）
+ */
+export const recordPlay = async (creationId: string, userId?: string) => {
+  try {
+    const { error } = await supabase
+      .from('creation_plays')
+      .insert({
+        creation_id: creationId,
+        user_id: userId || null,
+      });
+
+    if (error) throw error;
+
+    return true;
+  } catch (error: any) {
+    console.error('Error recording play:', error);
+    // 再生回数の記録失敗は致命的ではないのでエラーをスローしない
+    return false;
+  }
+};
+
+/**
+ * 作品を検索
+ * @param searchQuery 検索クエリ
+ * @param limit 取得件数
+ */
+export const searchCreations = async (searchQuery: string, limit = 20) => {
+  try {
+    const { data, error } = await supabase
+      .from('creations')
+      .select(`
+        *,
+        creator:users!creations_user_id_fkey(id, name)
+      `)
+      .eq('is_published', true)
+      .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error: any) {
+    console.error('Error searching creations:', error);
+    throw new Error(error.message || '検索に失敗しました');
   }
 };

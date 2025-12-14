@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
         react(),
         VitePWA({
           registerType: 'autoUpdate',
-          includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+          includeAssets: ['favicon.ico', 'favicon.svg', 'robots.txt', 'icon-180x180.png'],
           manifest: {
             name: 'つくるコード - Tsukuru Code',
             short_name: 'つくるコード',
@@ -28,18 +28,71 @@ export default defineConfig(({ mode }) => {
             orientation: 'portrait',
             scope: '/',
             start_url: '/',
+            lang: 'ja',
+            dir: 'ltr',
+            categories: ['education', 'kids', 'programming'],
+            screenshots: [
+              {
+                src: '/screenshot-wide.png',
+                sizes: '1280x720',
+                type: 'image/png',
+                form_factor: 'wide',
+                label: 'ダッシュボード画面'
+              },
+              {
+                src: '/screenshot-mobile.png',
+                sizes: '750x1334',
+                type: 'image/png',
+                form_factor: 'narrow',
+                label: 'モバイル画面'
+              }
+            ],
             icons: [
               {
                 src: '/icon-192x192.png',
                 sizes: '192x192',
                 type: 'image/png',
-                purpose: 'any maskable'
+                purpose: 'any'
               },
               {
                 src: '/icon-512x512.png',
                 sizes: '512x512',
                 type: 'image/png',
-                purpose: 'any maskable'
+                purpose: 'any'
+              },
+              {
+                src: '/icon-maskable-192x192.png',
+                sizes: '192x192',
+                type: 'image/png',
+                purpose: 'maskable'
+              },
+              {
+                src: '/icon-maskable-512x512.png',
+                sizes: '512x512',
+                type: 'image/png',
+                purpose: 'maskable'
+              },
+              {
+                src: '/icon.svg',
+                sizes: 'any',
+                type: 'image/svg+xml',
+                purpose: 'any'
+              }
+            ],
+            shortcuts: [
+              {
+                name: 'ダッシュボード',
+                short_name: 'ダッシュボード',
+                description: 'ダッシュボードを開く',
+                url: '/dashboard',
+                icons: [{ src: '/icon-192x192.png', sizes: '192x192' }]
+              },
+              {
+                name: 'クリエイターズワールド',
+                short_name: '作品',
+                description: 'みんなの作品を見る',
+                url: '/creations',
+                icons: [{ src: '/icon-192x192.png', sizes: '192x192' }]
               }
             ]
           },
@@ -95,12 +148,64 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
-            manualChunks: {
-              vendor: ['react', 'react-dom', 'react-router-dom'],
-              state: ['zustand'],
+            manualChunks: (id) => {
+              // React関連のコアライブラリ
+              if (id.includes('node_modules/react') ||
+                  id.includes('node_modules/react-dom') ||
+                  id.includes('node_modules/react-router')) {
+                return 'vendor-react';
+              }
+
+              // 状態管理
+              if (id.includes('node_modules/zustand')) {
+                return 'vendor-state';
+              }
+
+              // フォーム関連（react-hook-form, zod）
+              if (id.includes('node_modules/react-hook-form') ||
+                  id.includes('node_modules/@hookform') ||
+                  id.includes('node_modules/zod')) {
+                return 'vendor-forms';
+              }
+
+              // リッチテキストエディタ（TipTap）
+              if (id.includes('node_modules/@tiptap') ||
+                  id.includes('node_modules/prosemirror') ||
+                  id.includes('node_modules/lowlight') ||
+                  id.includes('node_modules/highlight.js')) {
+                return 'vendor-editor';
+              }
+
+              // チャート（Recharts）
+              if (id.includes('node_modules/recharts')) {
+                return 'vendor-charts';
+              }
+
+              // アニメーション（Framer Motion）
+              if (id.includes('node_modules/framer-motion')) {
+                return 'vendor-animations';
+              }
+
+              // Supabase
+              if (id.includes('node_modules/@supabase')) {
+                return 'vendor-supabase';
+              }
+
+              // i18n関連
+              if (id.includes('node_modules/i18next') ||
+                  id.includes('node_modules/react-i18next')) {
+                return 'vendor-i18n';
+              }
+
+              // その他のnode_modules
+              if (id.includes('node_modules')) {
+                return 'vendor-misc';
+              }
             },
           },
         },
+        // チャンクサイズ警告の閾値を上げる（最適化後は不要になるはず）
+        chunkSizeWarningLimit: 600,
       },
     };
 });

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import YouTubeEmbed from '../components/common/YouTubeEmbed';
 import { useAuthStore } from '../store/authStore';
-import { getCourseById, getLevelById, getLessonsByLevel, getQuizzesByLesson, updateUserXP, completeLesson, checkAndCompleteLevelIfNeeded } from '../services/supabaseService';
-import { Lesson as LessonType, Course as CourseType, Level, Quiz } from '../types/index';
+import { getCourseById, getLevelById, getLessonsByLevel, updateUserXP, completeLesson, checkAndCompleteLevelIfNeeded, getUserData } from '../services/supabaseService';
+import { Lesson as LessonType, Course as CourseType, Level } from '../types/index';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
+import LevelClearModal from '../components/modals/LevelClearModal';
 
 type Checkpoint = {
     text: string;
@@ -44,19 +46,12 @@ const LessonViewPage: React.FC = () => {
     const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
 
     const [checkpoints, setCheckpoints] = useState<CheckpointState[]>([]);
-    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-    const [showQuiz, setShowQuiz] = useState(false);
-    const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string>('');
-    const [quizSubmitted, setQuizSubmitted] = useState(false);
-    const [isCorrect, setIsCorrect] = useState(false);
-    const [quizScore, setQuizScore] = useState(0);
-    const [totalQuizPoints, setTotalQuizPoints] = useState(0);
-    const [quizCompleted, setQuizCompleted] = useState(false);
-    const [loadingQuiz, setLoadingQuiz] = useState(false);
+    const [lessonCompleted, setLessonCompleted] = useState(false);
 
     const [showLevelCompleteModal, setShowLevelCompleteModal] = useState(false);
     const [levelBonusXP, setLevelBonusXP] = useState(0);
+    const [lessonXP, setLessonXP] = useState(0);
+    const [totalUserXP, setTotalUserXP] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -99,33 +94,10 @@ const LessonViewPage: React.FC = () => {
     useEffect(() => {
         if (currentLesson) {
             setCheckpoints(currentLesson.checkpoints.map(cp => ({ ...cp, checked: false })));
-            setShowQuiz(false);
-            setCurrentQuizIndex(0);
-            setQuizCompleted(false);
-            setQuizScore(0);
-            setTotalQuizPoints(0);
+            setLessonCompleted(false);
         }
     }, [currentLesson]);
 
-    useEffect(() => {
-        const fetchQuizzes = async () => {
-            if (!currentLesson?.id) return;
-
-            try {
-                setLoadingQuiz(true);
-                const data = await getQuizzesByLesson(currentLesson.id);
-                setQuizzes(data);
-                const total = data.reduce((sum, quiz) => sum + quiz.points, 0);
-                setTotalQuizPoints(total);
-            } catch (error) {
-                console.error('Error fetching quizzes:', error);
-            } finally {
-                setLoadingQuiz(false);
-            }
-        };
-
-        fetchQuizzes();
-    }, [currentLesson?.id]);
 
     const handleCheckboxChange = (index: number) => {
         const newCheckpoints = [...checkpoints];
@@ -135,18 +107,7 @@ const LessonViewPage: React.FC = () => {
 
     const allChecked = checkpoints.every(cp => cp.checked);
 
-    const handleStartQuiz = () => {
-        if (quizzes.length === 0) {
-            handleCompleteLessonWithoutQuiz();
-            return;
-        }
-        setShowQuiz(true);
-        setCurrentQuizIndex(0);
-        setSelectedAnswer('');
-        setQuizSubmitted(false);
-    };
-
-    const handleCompleteLessonWithoutQuiz = async () => {
+    const handleCompleteLesson = async () => {
         if (!user || !currentLesson || !courseId || !levelId) return;
 
         try {
@@ -157,64 +118,11 @@ const LessonViewPage: React.FC = () => {
 
             if (currentLesson.xp_reward) {
                 await updateUserXP(user.uid, currentLesson.xp_reward);
+                setLessonXP(currentLesson.xp_reward);
             }
 
-            completeLessonInStore(currentLesson.id);
-
-            toast.success('レッスンを完了しました！');
-
-            // レベル完了チェック
-            await checkLevelCompletion();
-
-            setQuizCompleted(true);
-        } catch (error) {
-            console.error('Error completing lesson:', error);
-            toast.error('レッスン完了の記録に失敗しました');
-        }
-    };
-
-    const handleSubmitAnswer = () => {
-        if (!selectedAnswer) return;
-
-        const currentQuiz = quizzes[currentQuizIndex];
-        const correct = selectedAnswer === currentQuiz.correct_answer;
-
-        setIsCorrect(correct);
-        setQuizSubmitted(true);
-
-        if (correct) {
-            setQuizScore(prev => prev + currentQuiz.points);
-        }
-    };
-
-    const handleNextQuiz = () => {
-        if (currentQuizIndex < quizzes.length - 1) {
-            setCurrentQuizIndex(prev => prev + 1);
-            setSelectedAnswer('');
-            setQuizSubmitted(false);
-            setIsCorrect(false);
-        } else {
-            handleQuizComplete();
-        }
-    };
-
-    const handleQuizComplete = async () => {
-        if (!user || !currentLesson || !courseId || !levelId) return;
-
-        try {
-            const scorePercentage = totalQuizPoints > 0 ? (quizScore / totalQuizPoints) * 100 : 100;
-            const timeSpent = 0;
-
-            await completeLesson(user.uid, currentLesson.id, courseId, Math.round(scorePercentage), timeSpent);
-
-            if (currentLesson.xp_reward) {
-                await updateUserXP(user.uid, currentLesson.xp_reward);
-            }
-
-            completeLessonInStore(currentLesson.id);
-
-            setQuizCompleted(true);
-            setShowQuiz(false);
+            completeLessonInStore(courseId, currentLesson.id);
+            setLessonCompleted(true);
 
             toast.success('レッスンを完了しました！');
 
@@ -234,13 +142,14 @@ const LessonViewPage: React.FC = () => {
 
             if (result?.levelCompleted) {
                 setLevelBonusXP(result.bonusXP);
-                setShowLevelCompleteModal(true);
 
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
+                // Fetch updated user data to get total XP
+                const userData = await getUserData(user.uid);
+                if (userData) {
+                    setTotalUserXP(userData.xp || 0);
+                }
+
+                setShowLevelCompleteModal(true);
             }
         } catch (error) {
             console.error('Error checking level completion:', error);
@@ -295,222 +204,154 @@ const LessonViewPage: React.FC = () => {
     const hasNext = currentIndex < lessons.length - 1;
 
     return (
-        <div className="bg-amber-50 min-h-screen">
-            <div className="container mx-auto px-6 py-12">
+        <div className="min-h-screen bg-[#f4e4bc] font-serif relative">
+            {/* 背景装飾 */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%235D4037' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                }}
+            />
+
+            <div className="container mx-auto px-6 py-12 relative z-10">
                 <div className="flex items-center mb-8">
                     <button
-                        onClick={() => navigate(`/course/${courseId}`)}
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                        onClick={() => navigate(`/course/${courseId}/level/${levelId}`)}
+                        className="flex items-center gap-2 text-amber-900 hover:text-amber-700 font-bold bg-white/50 px-4 py-2 rounded-full transition-all hover:bg-white/80"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
-                        <span>{level.title}に戻る</span>
+                        <span>冒険の地図に戻る</span>
                     </button>
                 </div>
 
-                <div className="mb-6">
-                    <h1 className="text-3xl sm:text-4xl font-bold mb-2">{currentLesson.title}</h1>
-                    <p className="text-sm text-gray-600">{course.title} / {level.title}</p>
+                <div className="mb-6 text-center">
+                    <span className="inline-block px-4 py-1 bg-amber-800 text-amber-100 rounded-full text-sm font-bold mb-2 tracking-wider">QUEST</span>
+                    <h1 className="text-3xl sm:text-5xl font-bold mb-2 text-amber-900 drop-shadow-sm">{currentLesson.title}</h1>
+                    <p className="text-amber-800 font-medium">{course.title} - {level.title}</p>
                 </div>
 
-                <Card className="mb-8">
-                    {currentLesson.youtube_url ? (
-                        <YouTubeEmbed url={currentLesson.youtube_url} title={currentLesson.title} />
-                    ) : (
-                        <div className="bg-gray-100 rounded-lg p-8 text-center">
-                            <p className="text-gray-600">このレッスンには動画が設定されていません</p>
-                        </div>
-                    )}
-                </Card>
-
-                <Card className="p-6 mb-8">
-                    <h2 className="text-xl sm:text-2xl font-bold mb-4">このレッスンのポイント</h2>
-                    <p className="text-gray-700 leading-relaxed text-base">
-                        {currentLesson.description}
-                    </p>
-                </Card>
-
-                <Card className="p-6 sm:p-8 mb-8 bg-amber-50 border-2 border-amber-200">
-                    <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-x-3">
-                        <span className="text-3xl">🎯</span>
-                        <span>理解度チェック</span>
-                    </h2>
-                    <p className="text-gray-600 mb-6">
-                        動画で学んだことを確認しよう！できたらタップしてチェック！
-                    </p>
-                    <div className="space-y-3">
-                        {checkpoints.map((cp, index) => (
-                            <label
-                                key={index}
-                                htmlFor={`cp-${index}`}
-                                className={`
-                                    flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
-                                    ${cp.checked
-                                        ? 'bg-green-100 border-green-300 shadow-inner'
-                                        : 'bg-white border-gray-200 hover:bg-yellow-50 hover:border-yellow-300'
-                                    }
-                                `}
-                            >
-                                <input
-                                    id={`cp-${index}`}
-                                    type="checkbox"
-                                    checked={cp.checked}
-                                    onChange={() => handleCheckboxChange(index)}
-                                    className="sr-only"
-                                />
-                                <div className={`
-                                    w-6 h-6 rounded-md flex-shrink-0 flex items-center justify-center border-2 transition-all
-                                    ${cp.checked ? 'bg-green-500 border-green-600' : 'bg-gray-100 border-gray-300'}
-                                `}>
-                                    {cp.checked && <CheckIcon className="w-4 h-4 text-white" />}
-                                </div>
-                                <span className={`
-                                    ml-4 font-medium
-                                    ${cp.checked ? 'text-gray-500 line-through' : 'text-gray-800'}
-                                `}>
-                                    {cp.text}
-                                </span>
-                            </label>
-                        ))}
-                    </div>
-                </Card>
-
-                {allChecked && !showQuiz && !quizCompleted && (
-                    <Card className="p-6 sm:p-8 mb-8 bg-purple-50 border-2 border-purple-200">
-                        <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-x-3">
-                            <span className="text-3xl">📝</span>
-                            <span>クイズに挑戦！</span>
-                        </h2>
-                        {loadingQuiz ? (
-                            <p className="text-gray-600">クイズを読み込んでいます...</p>
-                        ) : quizzes.length === 0 ? (
-                            <div>
-                                <p className="text-gray-600 mb-4">このレッスンにはクイズがありません。次のレッスンに進みましょう！</p>
-                                <Button onClick={handleStartQuiz}>レッスンを完了</Button>
-                            </div>
-                        ) : (
-                            <div>
-                                <p className="text-gray-600 mb-4">
-                                    このレッスンには {quizzes.length} 問のクイズがあります（合計 {totalQuizPoints} ポイント）
-                                </p>
-                                <Button onClick={handleStartQuiz}>クイズを始める</Button>
-                            </div>
-                        )}
-                    </Card>
-                )}
-
-                {showQuiz && !quizCompleted && quizzes.length > 0 && (
-                    <Card className="p-6 sm:p-8 mb-8 bg-white border-2 border-purple-300">
-                        <div className="mb-4 flex justify-between items-center">
-                            <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-x-3">
-                                <span className="text-3xl">📝</span>
-                                <span>クイズ {currentQuizIndex + 1} / {quizzes.length}</span>
-                            </h2>
-                            <div className="text-sm text-gray-600">
-                                現在のスコア: {quizScore} / {totalQuizPoints}
-                            </div>
-                        </div>
-
-                        <div className="mb-6">
-                            <h3 className="text-lg font-semibold mb-4">{quizzes[currentQuizIndex].question}</h3>
-
-                            {quizzes[currentQuizIndex].question_type === 'multiple_choice' && quizzes[currentQuizIndex].options && (
-                                <div className="space-y-3">
-                                    {quizzes[currentQuizIndex].options!.map((option, index) => (
-                                        <label
-                                            key={index}
-                                            className={`
-                                                flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all
-                                                ${selectedAnswer === option
-                                                    ? quizSubmitted
-                                                        ? option === quizzes[currentQuizIndex].correct_answer
-                                                            ? 'bg-green-100 border-green-300'
-                                                            : 'bg-red-100 border-red-300'
-                                                        : 'bg-amber-100 border-amber-300'
-                                                    : 'bg-white border-gray-200 hover:bg-gray-50'
-                                                }
-                                                ${quizSubmitted ? 'pointer-events-none' : ''}
-                                            `}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="quiz-answer"
-                                                value={option}
-                                                checked={selectedAnswer === option}
-                                                onChange={(e) => setSelectedAnswer(e.target.value)}
-                                                disabled={quizSubmitted}
-                                                className="sr-only"
-                                            />
-                                            <div className={`
-                                                w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center border-2
-                                                ${selectedAnswer === option ? 'bg-amber-500 border-amber-600' : 'bg-white border-gray-300'}
-                                            `}>
-                                                {selectedAnswer === option && (
-                                                    <div className="w-3 h-3 rounded-full bg-white"></div>
-                                                )}
-                                            </div>
-                                            <span className="ml-4 font-medium text-gray-800">
-                                                {option}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-
-                            {quizSubmitted && quizzes[currentQuizIndex].explanation && (
-                                <div className={`p-4 rounded-lg mb-6 mt-4 ${isCorrect ? 'bg-green-50 border-2 border-green-200' : 'bg-red-50 border-2 border-red-200'}`}>
-                                    <p className="font-bold mb-2 flex items-center gap-2">
-                                        {isCorrect ? (
-                                            <>
-                                                <span className="text-2xl">✅</span>
-                                                <span className="text-green-700">正解です！</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="text-2xl">❌</span>
-                                                <span className="text-red-700">不正解です</span>
-                                            </>
-                                        )}
-                                    </p>
-                                    <p className="text-gray-700">{quizzes[currentQuizIndex].explanation}</p>
-                                </div>
-                            )}
-
-                            <div className="flex justify-end gap-3 mt-4">
-                                {!quizSubmitted ? (
-                                    <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer}>
-                                        回答を確認
-                                    </Button>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* 動画カード */}
+                        <div className="bg-[#fff9e6] rounded-xl shadow-xl border-4 border-[#d4c5a2] overflow-hidden relative">
+                            <div className="absolute top-0 left-0 w-full h-2 bg-[#d4c5a2]"></div>
+                            <div className="p-1">
+                                {currentLesson.youtube_url ? (
+                                    <YouTubeEmbed url={currentLesson.youtube_url} title={currentLesson.title} />
                                 ) : (
-                                    <Button onClick={handleNextQuiz}>
-                                        {currentQuizIndex < quizzes.length - 1 ? '次の問題へ' : 'クイズを完了'}
-                                    </Button>
+                                    <div className="bg-amber-50 rounded-lg p-12 text-center border-2 border-dashed border-amber-300">
+                                        <p className="text-amber-800 font-bold">このクエストには動画の記録がないようだ...</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
-                    </Card>
-                )}
 
-                {quizCompleted && (
-                    <Card className="p-6 sm:p-8 mb-8 bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300">
-                        <h2 className="text-2xl sm:text-3xl font-bold mb-4 flex items-center gap-x-3">
-                            <span className="text-4xl">🎉</span>
-                            <span>クイズ完了！</span>
-                        </h2>
-                        <div className="mb-4">
-                            <p className="text-xl font-bold text-purple-900 mb-2">
-                                あなたのスコア: {quizScore} / {totalQuizPoints} ポイント
-                            </p>
-                            <p className="text-lg text-purple-800">
-                                正答率: {totalQuizPoints > 0 ? Math.round((quizScore / totalQuizPoints) * 100) : 100}%
-                            </p>
+                        {/* 説明カード */}
+                        <div className="bg-[#fff9e6] p-8 rounded-xl shadow-lg border-2 border-[#d4c5a2] relative">
+                            <div className="absolute -top-4 -left-4 w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-white text-2xl shadow-md">
+                                📜
+                            </div>
+                            <h2 className="text-2xl font-bold mb-4 text-amber-900 border-b-2 border-amber-200 pb-2">
+                                クエスト情報
+                            </h2>
+                            <div
+                                className="prose prose-amber max-w-none text-amber-900"
+                                dangerouslySetInnerHTML={{ __html: currentLesson.description }}
+                            />
                         </div>
-                        <p className="text-gray-700 mb-4">
-                            {currentLesson.xp_reward && `+${currentLesson.xp_reward} XP を獲得しました！`}
-                        </p>
-                    </Card>
-                )}
+                    </div>
+
+                    <div className="lg:col-span-1 space-y-6">
+                        {/* クエスト目標（チェックポイント） */}
+                        <div className="bg-[#fff9e6] p-6 rounded-xl shadow-lg border-4 border-amber-700/20 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                <svg className="w-32 h-32 text-amber-900" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+
+                            <h2 className="text-xl font-bold mb-6 flex items-center gap-x-3 text-amber-900">
+                                <span className="text-2xl">⚔️</span>
+                                <span>クエスト目標</span>
+                            </h2>
+
+                            <div className="space-y-4 relative z-10">
+                                {checkpoints.map((cp, index) => (
+                                    <label
+                                        key={index}
+                                        htmlFor={`cp-${index}`}
+                                        className={`
+                                            flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 group
+                                            ${cp.checked
+                                                ? 'bg-green-100/50 border-green-600/30'
+                                                : 'bg-white border-amber-200 hover:border-amber-400 hover:bg-amber-50'
+                                            }
+                                        `}
+                                    >
+                                        <div className="relative">
+                                            <input
+                                                id={`cp-${index}`}
+                                                type="checkbox"
+                                                checked={cp.checked}
+                                                onChange={() => handleCheckboxChange(index)}
+                                                className="sr-only"
+                                            />
+                                            <div className={`
+                                                w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center border-2 transition-all duration-300
+                                                ${cp.checked
+                                                    ? 'bg-green-500 border-green-600 scale-110'
+                                                    : 'bg-amber-100 border-amber-300 group-hover:border-amber-500'
+                                                }
+                                            `}>
+                                                {cp.checked && <CheckIcon className="w-5 h-5 text-white" />}
+                                            </div>
+                                        </div>
+                                        <span className={`
+                                            ml-4 font-bold text-lg transition-colors
+                                            ${cp.checked ? 'text-green-800 line-through opacity-70' : 'text-amber-900'}
+                                        `}>
+                                            {cp.text}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 完了アクション */}
+                        {allChecked && !lessonCompleted && (
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="bg-gradient-to-br from-green-100 to-emerald-200 p-6 rounded-xl shadow-xl border-4 border-green-400 text-center"
+                            >
+                                <h2 className="text-xl font-bold mb-2 text-green-900">目標達成！</h2>
+                                <p className="text-green-800 mb-4 text-sm">クエストを完了して報酬を受け取ろう</p>
+                                <button
+                                    onClick={handleCompleteLesson}
+                                    className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <span className="text-xl">🎁</span>
+                                    クエスト完了！
+                                </button>
+                            </motion.div>
+                        )}
+
+                        {lessonCompleted && (
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                className="bg-gradient-to-br from-amber-100 to-yellow-200 p-6 rounded-xl shadow-xl border-4 border-yellow-400 text-center"
+                            >
+                                <h2 className="text-2xl font-bold mb-2 text-amber-900">クエストクリア！</h2>
+                                <div className="text-4xl mb-2">🎉</div>
+                                <p className="text-amber-800 font-bold">
+                                    {currentLesson.xp_reward && `+${currentLesson.xp_reward} XP 獲得！`}
+                                </p>
+                            </motion.div>
+                        )}
+                    </div>
+                </div>
 
                 <div className="flex justify-between items-center">
                     <div>
@@ -529,7 +370,7 @@ const LessonViewPage: React.FC = () => {
                         </div>
                         <Button
                             onClick={handleNext}
-                            disabled={!quizCompleted && (quizzes.length > 0 || !allChecked)}
+                            disabled={!lessonCompleted}
                         >
                             {hasNext ? '次のレッスンへ' : 'レベル一覧に戻る'}
                         </Button>
@@ -538,34 +379,16 @@ const LessonViewPage: React.FC = () => {
             </div>
 
             {/* レベルクリアモーダル */}
-            {showLevelCompleteModal && level && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-                        <div className="text-center">
-                            <div className="text-6xl mb-4">🎉</div>
-                            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                                レベルクリア！
-                            </h2>
-                            <p className="text-gray-600 mb-6">
-                                {level.title}を完了しました！
-                            </p>
-
-                            <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 mb-6">
-                                <p className="text-sm text-gray-600 mb-2">ボーナスXP獲得</p>
-                                <p className="text-4xl font-bold text-amber-600">
-                                    +{levelBonusXP} XP
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={closeLevelCompleteModal}
-                                className="w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg"
-                            >
-                                次のレベルへ
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {level && (
+                <LevelClearModal
+                    isOpen={showLevelCompleteModal}
+                    onClose={closeLevelCompleteModal}
+                    levelTitle={level.title}
+                    levelNumber={level.level_number}
+                    xpEarned={lessonXP}
+                    bonusXP={levelBonusXP}
+                    totalXP={totalUserXP}
+                />
             )}
         </div>
     );

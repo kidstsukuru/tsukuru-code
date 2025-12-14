@@ -1,29 +1,44 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Header from './components/layout/Header';
+import BottomNav from './components/navigation/BottomNav';
 import SkipLink from './components/common/SkipLink';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import RegisterPage from './pages/RegisterPage';
-import CoursePage from './pages/CoursePage';
-import LevelLessonsPage from './pages/LevelLessonsPage';
-import LessonViewPage from './pages/LessonViewPage';
-import CreationsPage from './pages/CreationsPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import AdminCoursesPage from './pages/AdminCoursesPage';
-import AdminCourseFormPage from './pages/AdminCourseFormPage';
-import AdminLessonsPage from './pages/AdminLessonsPage';
-import AdminLessonFormPage from './pages/AdminLessonFormPage';
-import AdminLevelsPage from './pages/AdminLevelsPage';
-import AdminLevelFormPage from './pages/AdminLevelFormPage';
-import AdminQuizzesPage from './pages/AdminQuizzesPage';
-import AdminQuizFormPage from './pages/AdminQuizFormPage';
+import LoadingSpinner from './components/common/LoadingSpinner';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import AdminRoute from './components/routes/AdminRoute';
 import AdminLayout from './components/admin/layout/AdminLayout';
 import { useAuthStore } from './store/authStore';
 import './src/i18n/config'; // i18nの初期化
+
+// 遅延ロード: 公開ページ（初期ロード時に必要な可能性が高い）
+const HomePage = lazy(() => import('./pages/HomePage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+
+// 遅延ロード: 保護されたページ（ログイン後）
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const CoursePage = lazy(() => import('./pages/CoursePage'));
+const LevelLessonsPage = lazy(() => import('./pages/LevelLessonsPage'));
+const LessonViewPage = lazy(() => import('./pages/LessonViewPage'));
+
+// 遅延ロード: クリエイターズワールド
+const CreationsPage = lazy(() => import('./pages/CreationsPage'));
+const CreationDetailPage = lazy(() => import('./pages/CreationDetailPage'));
+const CreateCreationPage = lazy(() => import('./pages/CreateCreationPage'));
+const EditCreationPage = lazy(() => import('./pages/EditCreationPage'));
+const MyCreationsPage = lazy(() => import('./pages/MyCreationsPage'));
+
+// 遅延ロード: 管理画面（管理者のみアクセス）
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
+const AdminCoursesPage = lazy(() => import('./pages/AdminCoursesPage'));
+const AdminCourseFormPage = lazy(() => import('./pages/AdminCourseFormPage'));
+const AdminLessonsPage = lazy(() => import('./pages/AdminLessonsPage'));
+const AdminLessonFormPage = lazy(() => import('./pages/AdminLessonFormPage'));
+const AdminLevelsPage = lazy(() => import('./pages/AdminLevelsPage'));
+const AdminLevelFormPage = lazy(() => import('./pages/AdminLevelFormPage'));
+const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'));
+const AdminAnalyticsPage = lazy(() => import('./pages/AdminAnalyticsPage'));
 
 // 認証が必要なルートを保護するコンポーネント
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -49,9 +64,10 @@ const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <SkipLink />
-      <Toaster
+    <ErrorBoundary>
+      <BrowserRouter>
+        <SkipLink />
+        <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
@@ -75,7 +91,8 @@ const App: React.FC = () => {
           },
         }}
       />
-      <Routes>
+      <Suspense fallback={<LoadingSpinner fullScreen />}>
+        <Routes>
         {/* 公開ルート */}
         <Route path="/" element={
           <div className="bg-amber-50 min-h-screen text-gray-800">
@@ -111,55 +128,108 @@ const App: React.FC = () => {
         {/* 保護されたルート（認証必須） */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <div className="bg-amber-50 min-h-screen text-gray-800">
+            <div className="bg-amber-50 min-h-screen text-gray-800 pb-20 lg:pb-0">
               <Header />
               <main id="main-content">
                 <DashboardPage />
               </main>
+              <BottomNav />
             </div>
           </ProtectedRoute>
         } />
 
         <Route path="/course/:courseId/level/:levelId/lesson/:lessonId" element={
           <ProtectedRoute>
-            <div className="bg-amber-50 min-h-screen text-gray-800">
+            <div className="bg-amber-50 min-h-screen text-gray-800 pb-20 lg:pb-0">
               <Header />
               <main id="main-content">
                 <LessonViewPage />
               </main>
+              <BottomNav />
             </div>
           </ProtectedRoute>
         } />
 
         <Route path="/course/:courseId/level/:levelId" element={
           <ProtectedRoute>
-            <div className="bg-amber-50 min-h-screen text-gray-800">
+            <div className="bg-amber-50 min-h-screen text-gray-800 pb-20 lg:pb-0">
               <Header />
               <main id="main-content">
                 <LevelLessonsPage />
               </main>
+              <BottomNav />
             </div>
           </ProtectedRoute>
         } />
 
         <Route path="/course/:courseId" element={
           <ProtectedRoute>
-            <div className="bg-amber-50 min-h-screen text-gray-800">
+            <div className="bg-amber-50 min-h-screen text-gray-800 pb-20 lg:pb-0">
               <Header />
               <main id="main-content">
                 <CoursePage />
               </main>
+              <BottomNav />
             </div>
           </ProtectedRoute>
         } />
 
         <Route path="/creations" element={
           <ProtectedRoute>
-            <div className="bg-slate-900 min-h-screen text-gray-800">
+            <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
               <Header />
               <main id="main-content">
                 <CreationsPage />
               </main>
+              <BottomNav />
+            </div>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/creations/new" element={
+          <ProtectedRoute>
+            <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
+              <Header />
+              <main id="main-content">
+                <CreateCreationPage />
+              </main>
+              <BottomNav />
+            </div>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/creations/my" element={
+          <ProtectedRoute>
+            <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
+              <Header />
+              <main id="main-content">
+                <MyCreationsPage />
+              </main>
+              <BottomNav />
+            </div>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/creations/:id" element={
+          <ProtectedRoute>
+            <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
+              <Header />
+              <main id="main-content">
+                <CreationDetailPage />
+              </main>
+              <BottomNav />
+            </div>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/creations/:id/edit" element={
+          <ProtectedRoute>
+            <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
+              <Header />
+              <main id="main-content">
+                <EditCreationPage />
+              </main>
+              <BottomNav />
             </div>
           </ProtectedRoute>
         } />
@@ -245,29 +315,10 @@ const App: React.FC = () => {
           </AdminRoute>
         } />
 
-        <Route path="/admin/courses/:courseId/lessons/:lessonId/quizzes" element={
-          <AdminRoute>
-            <AdminLayout>
-              <AdminQuizzesPage />
-            </AdminLayout>
-          </AdminRoute>
-        } />
-
-        <Route path="/admin/courses/:courseId/lessons/:lessonId/quizzes/:quizId/edit" element={
-          <AdminRoute>
-            <AdminLayout>
-              <AdminQuizFormPage />
-            </AdminLayout>
-          </AdminRoute>
-        } />
-
         <Route path="/admin/users" element={
           <AdminRoute>
             <AdminLayout>
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-slate-800 mb-4">ユーザー管理</h2>
-                <p className="text-slate-600">この機能は次のフェーズで実装予定です</p>
-              </div>
+              <AdminUsersPage />
             </AdminLayout>
           </AdminRoute>
         } />
@@ -275,15 +326,14 @@ const App: React.FC = () => {
         <Route path="/admin/analytics" element={
           <AdminRoute>
             <AdminLayout>
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-slate-800 mb-4">分析・統計</h2>
-                <p className="text-slate-600">この機能は次のフェーズで実装予定です</p>
-              </div>
+              <AdminAnalyticsPage />
             </AdminLayout>
           </AdminRoute>
         } />
       </Routes>
+      </Suspense>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 };
 

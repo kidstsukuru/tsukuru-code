@@ -63,14 +63,14 @@ const Header: React.FC = () => {
   }, [isMenuOpen]);
 
   const navLinkClasses = (view: 'dashboard' | 'course' | 'creations') =>
-    `px-3 py-2 rounded-md text-sm sm:text-base font-bold transition-colors ${
+    `px-4 py-3 min-h-[44px] rounded-md text-sm sm:text-base font-bold transition-colors flex items-center ${
         activeView === view
         ? 'text-amber-600 border-b-2 border-amber-500'
         : 'text-gray-500 hover:text-amber-600'
     }`;
 
   return (
-    <header className="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-10">
+    <header className="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-40">
       <nav className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center" role="navigation" aria-label="メインナビゲーション">
         <button
           onClick={handleLogoClick}
@@ -104,7 +104,7 @@ const Header: React.FC = () => {
                         <button
                             id="user-menu-button"
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
                             aria-expanded={isMenuOpen}
                             aria-haspopup="true"
                             aria-label="ユーザーメニュー"
@@ -122,17 +122,17 @@ const Header: React.FC = () => {
                                     <p className="text-sm font-bold">{t('dashboard.welcome', { name: user.name })}</p>
                                 </div>
                                 <div className="sm:hidden py-1">
-                                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); setIsMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-amber-100 transition-colors">{t('dashboard.title')}</a>
-                                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/creations'); setIsMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-amber-100 transition-colors">{t('creations.title')}</a>
+                                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); setIsMenuOpen(false); }} className="block px-4 py-3 min-h-[44px] text-sm text-gray-700 hover:bg-amber-100 active:bg-amber-200 transition-colors flex items-center">{t('dashboard.title')}</a>
+                                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/creations'); setIsMenuOpen(false); }} className="block px-4 py-3 min-h-[44px] text-sm text-gray-700 hover:bg-amber-100 active:bg-amber-200 transition-colors flex items-center">{t('creations.title')}</a>
                                 </div>
                                 <div className="py-1 border-t sm:border-none">
-                                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-amber-100 transition-colors" role="menuitem">
+                                    <a href="#" className="block px-4 py-3 min-h-[44px] text-sm text-gray-700 hover:bg-amber-100 active:bg-amber-200 transition-colors flex items-center" role="menuitem">
                                         {t('common.edit')}
                                     </a>
                                     <a
                                         href="#"
                                         onClick={(e) => { e.preventDefault(); logout(); setIsMenuOpen(false); }}
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-amber-100 transition-colors"
+                                        className="block px-4 py-3 min-h-[44px] text-sm text-gray-700 hover:bg-amber-100 active:bg-amber-200 transition-colors flex items-center"
                                         role="menuitem"
                                     >
                                         {t('common.logout')}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Lesson as LessonType, Course as CourseType, Quiz } from '../types/index';
+import { Lesson as LessonType, Course as CourseType } from '../types/index';
 import { useAuthStore } from '../store/authStore';
-import { getQuizzesByLesson, updateUserXP, completeLesson } from '../services/supabaseService';
+import { updateUserXP, completeLesson } from '../services/supabaseService';
 import YouTubeEmbed from './common/YouTubeEmbed';
 import Button from './common/Button';
 import toast from 'react-hot-toast';
@@ -61,43 +61,13 @@ const AdventureLessonDetail: React.FC<{
     const hasNext = currentIndex < lessons.length - 1;
 
     const [checkpoints, setCheckpoints] = useState<CheckpointState[]>([]);
-    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-    const [showQuiz, setShowQuiz] = useState(false);
-    const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string>('');
-    const [quizSubmitted, setQuizSubmitted] = useState(false);
-    const [isCorrect, setIsCorrect] = useState(false);
-    const [quizScore, setQuizScore] = useState(0);
-    const [totalQuizPoints, setTotalQuizPoints] = useState(0);
-    const [quizCompleted, setQuizCompleted] = useState(false);
-    const [loadingQuiz, setLoadingQuiz] = useState(false);
+    const [lessonCompleted, setLessonCompleted] = useState(false);
 
     useEffect(() => {
         setCheckpoints(lesson.checkpoints.map(cp => ({ ...cp, checked: false })));
-        setShowQuiz(false);
-        setCurrentQuizIndex(0);
-        setQuizCompleted(false);
-        setQuizScore(0);
-        setTotalQuizPoints(0);
+        setLessonCompleted(false);
     }, [lesson]);
 
-    useEffect(() => {
-        const fetchQuizzes = async () => {
-            if (!lesson.id) return;
-            try {
-                setLoadingQuiz(true);
-                const data = await getQuizzesByLesson(lesson.id);
-                setQuizzes(data);
-                const total = data.reduce((sum, quiz) => sum + quiz.points, 0);
-                setTotalQuizPoints(total);
-            } catch (error) {
-                console.error('Error fetching quizzes:', error);
-            } finally {
-                setLoadingQuiz(false);
-            }
-        };
-        fetchQuizzes();
-    }, [lesson.id]);
 
     const handleCheckboxChange = (index: number) => {
         const newCheckpoints = [...checkpoints];
@@ -116,67 +86,15 @@ const AdventureLessonDetail: React.FC<{
 
     const allChecked = checkpoints.every(cp => cp.checked);
 
-    const handleStartQuiz = () => {
-        if (quizzes.length === 0) {
-            handleCompleteLesson();
-            return;
-        }
-        setShowQuiz(true);
-        setCurrentQuizIndex(0);
-        setSelectedAnswer('');
-        setQuizSubmitted(false);
-        setQuizScore(0);
-    };
-
-    const handleSubmitAnswer = () => {
-        if (!selectedAnswer) {
-            toast.error('Choose your spell!');
-            return;
-        }
-
-        const currentQuiz = quizzes[currentQuizIndex];
-        const correct = selectedAnswer === currentQuiz.correct_answer;
-        setIsCorrect(correct);
-        setQuizSubmitted(true);
-
-        if (correct) {
-            setQuizScore(prev => prev + currentQuiz.points);
-            toast.success('Spell Cast Successfully! 🌟');
-            confetti({
-                particleCount: 80,
-                spread: 60,
-                origin: { y: 0.6 },
-                colors: ['#FCD34D', '#FFFFFF']
-            });
-        } else {
-            toast.error('The spell fizzled...');
-        }
-    };
-
-    const handleNextQuiz = () => {
-        if (currentQuizIndex < quizzes.length - 1) {
-            setCurrentQuizIndex(prev => prev + 1);
-            setSelectedAnswer('');
-            setQuizSubmitted(false);
-            setIsCorrect(false);
-        } else {
-            setQuizCompleted(true);
-            handleCompleteLesson();
-        }
-    };
-
     const handleCompleteLesson = async () => {
         if (!user) return;
 
         try {
-            const scorePercentage = totalQuizPoints > 0
-                ? Math.round((quizScore / totalQuizPoints) * 100)
-                : 100;
-
-            await completeLesson(user.uid, lesson.id, course.id, scorePercentage, 0);
+            await completeLesson(user.uid, lesson.id, course.id, 100, 0);
             const xpToAward = lesson.xp_reward || 10;
             await updateUserXP(user.uid, xpToAward);
             completeLessonInStore(course.id, lesson.id);
+            setLessonCompleted(true);
             toast.success(`Quest Complete! +${xpToAward} XP Gained!`);
 
             const duration = 3000;
@@ -318,93 +236,21 @@ const AdventureLessonDetail: React.FC<{
                         {/* Action Area */}
                         <div className="sticky top-6">
                             <AnimatePresence mode="wait">
-                                {allChecked && !showQuiz && !quizCompleted && (
+                                {allChecked && !lessonCompleted && (
                                     <motion.button
                                         initial={{ scale: 0.9, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         exit={{ scale: 0.9, opacity: 0 }}
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        onClick={handleStartQuiz}
+                                        onClick={handleCompleteLesson}
                                         className="w-full py-4 bg-gradient-to-r from-[#B45309] to-[#78350F] text-white rounded-xl font-bold text-xl uppercase tracking-widest shadow-lg border border-[#FCD34D]/50 hover:shadow-[#FCD34D]/20 transition-all"
                                     >
-                                        ⚔️ Begin Trial
+                                        ⚔️ Complete Quest
                                     </motion.button>
                                 )}
 
-                                {showQuiz && !quizCompleted && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        className="bg-[#2A1B0E] border-2 border-[#B45309] rounded-xl overflow-hidden"
-                                    >
-                                        <div className="bg-[#1a1a1a] p-4 text-center border-b border-[#B45309]">
-                                            <h3 className="text-[#FCD34D] font-bold uppercase tracking-widest">
-                                                Trial of Wisdom
-                                            </h3>
-                                            <div className="text-xs text-[#78350F] mt-1">
-                                                Wave {currentQuizIndex + 1} / {quizzes.length}
-                                            </div>
-                                        </div>
-
-                                        <div className="p-6">
-                                            {quizzes[currentQuizIndex] && (
-                                                <>
-                                                    <p className="font-bold text-white mb-6 text-lg text-center">
-                                                        {quizzes[currentQuizIndex].question}
-                                                    </p>
-
-                                                    <div className="space-y-3">
-                                                        {quizzes[currentQuizIndex].options?.map((option, idx) => (
-                                                            <button
-                                                                key={idx}
-                                                                onClick={() => !quizSubmitted && setSelectedAnswer(option)}
-                                                                disabled={quizSubmitted}
-                                                                className={`
-                                                                    w-full p-4 border rounded-lg text-left font-serif transition-all
-                                                                    ${selectedAnswer === option
-                                                                        ? 'bg-[#B45309]/30 border-[#FCD34D] text-[#FCD34D]'
-                                                                        : 'bg-black/20 border-[#78350F] text-[#D6D3D1] hover:bg-[#B45309]/10'
-                                                                    }
-                                                                    ${quizSubmitted && option === quizzes[currentQuizIndex].correct_answer ? '!bg-green-900/30 !border-green-500 !text-green-400' : ''}
-                                                                    ${quizSubmitted && selectedAnswer === option && option !== quizzes[currentQuizIndex].correct_answer ? '!bg-red-900/30 !border-red-500 !text-red-400' : ''}
-                                                                `}
-                                                            >
-                                                                {option}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-
-                                                    {quizSubmitted && (
-                                                        <motion.div
-                                                            initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 1 }}
-                                                            className={`mt-4 p-3 rounded bg-black/30 border ${isCorrect ? 'border-green-500/50 text-green-400' : 'border-red-500/50 text-red-400'}`}
-                                                        >
-                                                            <p className="font-bold mb-1">{isCorrect ? '✨ Correct!' : '💀 Incorrect'}</p>
-                                                            <p className="text-sm opacity-80">{quizzes[currentQuizIndex].explanation}</p>
-                                                        </motion.div>
-                                                    )}
-
-                                                    <div className="mt-6">
-                                                        {!quizSubmitted ? (
-                                                            <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer} className="w-full bg-[#B45309] hover:bg-[#92400E] border border-[#FCD34D]/30 text-white font-serif">
-                                                                Cast Spell
-                                                            </Button>
-                                                        ) : (
-                                                            <Button onClick={handleNextQuiz} className="w-full bg-[#1E3A8A] hover:bg-[#1E40AF] border border-blue-400/30 text-white font-serif">
-                                                                Next Challenge
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                )}
-
-                                {quizCompleted && (
+                                {lessonCompleted && (
                                     <motion.div
                                         initial={{ scale: 0.8, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
@@ -414,7 +260,7 @@ const AdventureLessonDetail: React.FC<{
                                             <div className="text-5xl mb-4">👑</div>
                                             <h3 className="text-2xl font-black text-[#FCD34D] mb-2 uppercase tracking-widest">Victory!</h3>
                                             <p className="text-[#D6D3D1] mb-6">
-                                                Score: {quizScore} / {totalQuizPoints}
+                                                Quest completed successfully!
                                             </p>
                                             <Button onClick={handleNext} className="w-full bg-[#FCD34D] hover:bg-[#D97706] text-black font-bold uppercase tracking-widest">
                                                 Continue Journey

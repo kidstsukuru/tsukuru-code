@@ -93,21 +93,6 @@ export interface Lesson {
   updated_at: string;
 }
 
-// クイズ
-export interface Quiz {
-  id: string;
-  lesson_id: string;
-  question: string;
-  question_type: 'multiple_choice' | 'code' | 'drag_drop';
-  options?: string[];
-  correct_answer: string;
-  explanation?: string;
-  points: number;
-  order_index: number;
-  created_at: string;
-  updated_at?: string;
-}
-
 // ユーザー進捗
 export interface UserProgress {
   id: string;
@@ -154,3 +139,44 @@ export interface DBUserBadge {
 // 後方互換性のためのエイリアス
 export type Badge = DBBadge;
 export type UserBadge = DBUserBadge;
+
+// =====================================================
+// クリエイターズワールド関連の型定義
+// =====================================================
+
+// 作品
+export interface Creation {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  thumbnail_url?: string;
+  code_url: string;  // Scratchプロジェクトリンクまたは埋め込みコードURL
+  plays: number;
+  likes: number;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+  // フロントエンド用の拡張フィールド（JOIN結果）
+  creator?: {
+    id: string;
+    name: string;
+  };
+  is_liked?: boolean;  // 現在のユーザーがいいねしているか
+}
+
+// いいね
+export interface CreationLike {
+  id: string;
+  user_id: string;
+  creation_id: string;
+  created_at: string;
+}
+
+// 再生履歴
+export interface CreationPlay {
+  id: string;
+  user_id?: string;  // ゲストユーザーも考慮してoptional
+  creation_id: string;
+  played_at: string;
+}

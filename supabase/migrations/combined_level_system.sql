@@ -13,7 +13,7 @@
 CREATE TABLE IF NOT EXISTS levels (
   id TEXT PRIMARY KEY,
   course_id TEXT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
+  title TEXT NOT NULL,kaw
   description TEXT,
   level_number INTEGER NOT NULL,
   bonus_xp INTEGER NOT NULL DEFAULT 50,

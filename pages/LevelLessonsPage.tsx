@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 import { getCourseById, getLevelById, getLessonsByLevel, getUserProgress } from '../services/supabaseService';
 import { useAuthStore } from '../store/authStore';
 import { Course, Level, Lesson, UserProgress } from '../types/index';
+import StageNode from '../components/adventure/StageNode';
+
 
 interface LessonWithProgress extends Lesson {
   isUnlocked: boolean;
@@ -20,6 +22,25 @@ const LevelLessonsPage: React.FC = () => {
   const [level, setLevel] = useState<Level | null>(null);
   const [lessons, setLessons] = useState<LessonWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // マップの座標を生成する関数
+  const generateMapPoints = (count: number) => {
+    return Array.from({ length: count }).map((_, i) => {
+      // サイン波で曲がりくねった道を作る
+      const x = 50 + 30 * Math.sin(i * 0.8);
+      const y = 10 + (i * 15); // 縦方向の間隔
+      return { x, y };
+    });
+  };
+
+  const mapPoints = React.useMemo(() => generateMapPoints(lessons.length), [lessons.length]);
+
+  // 現在のプレイヤー位置（最後にアンロックされた、またはプレイ中のレッスン）
+  const activeLessonIndex = lessons.reduce((acc, lesson, index) => {
+    if (lesson.isUnlocked && !lesson.isCompleted) return index;
+    if (lesson.isCompleted) return index; // 全て完了なら最後
+    return acc;
+  }, 0);
 
   useEffect(() => {
     if (courseId && levelId && user) {
@@ -102,143 +123,140 @@ const LevelLessonsPage: React.FC = () => {
     );
   }
 
+
+
+
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-stone-100">
+        <div className="text-xl text-stone-600 font-serif">冒険の準備中...</div>
+      </div>
+    );
+  }
+
+  if (!course || !level) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-stone-100">
+        <div className="text-center">
+          <p className="text-stone-600 mb-4">地図が見つかりません</p>
+          <button
+            onClick={() => navigate(`/course/${courseId}`)}
+            className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-bold shadow-md"
+          >
+            戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const completedCount = lessons.filter(l => l.isCompleted).length;
   const progressPercentage = lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* ヘッダー */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-[#e6d5ac] relative overflow-hidden font-sans">
+      {/* 背景装飾（地図のようなテクスチャ感） */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}
+      />
+
+      {/* ヘッダーエリア */}
+      <div className="relative z-20 pt-6 px-4 mb-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button
             onClick={() => navigate(`/course/${courseId}`)}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+            className="flex items-center text-stone-700 hover:text-stone-900 bg-white/80 px-4 py-2 rounded-full shadow-sm backdrop-blur-sm transition-all hover:bg-white"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            レベル一覧に戻る
+            <span className="font-bold">ワールドマップへ</span>
           </button>
 
-          {/* レベル情報カード */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white font-bold text-2xl shadow-lg">
-                {level.level_number}
+          <div className="bg-white/90 px-6 py-3 rounded-xl shadow-lg border-2 border-amber-200 backdrop-blur-sm">
+            <h1 className="text-2xl font-bold text-amber-800">{level.title}</h1>
+            <div className="flex items-center mt-1 gap-2">
+              <div className="flex-1 h-3 bg-stone-200 rounded-full overflow-hidden w-32">
+                <div
+                  className="h-full bg-gradient-to-r from-green-400 to-green-600"
+                  style={{ width: `${progressPercentage}%` }}
+                />
               </div>
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold text-gray-900">{level.title}</h1>
-                <p className="text-sm text-gray-500">{course.title}</p>
-                {level.description && (
-                  <p className="text-gray-600 mt-2">{level.description}</p>
-                )}
-              </div>
+              <span className="text-xs font-bold text-stone-600">{completedCount}/{lessons.length}</span>
             </div>
-
-            {/* 進捗バー */}
-            {lessons.length > 0 && (
-              <div className="mt-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600">
-                    進捗: {completedCount} / {lessons.length} レッスン
-                  </span>
-                  <span className="text-sm font-semibold text-amber-600">
-                    {Math.round(progressPercentage)}%
-                  </span>
-                </div>
-                <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPercentage}%` }}
-                    transition={{ duration: 0.8 }}
-                    className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full"
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
+      </div>
 
-        {/* レッスン一覧 */}
-        <div className="space-y-4">
+      {/* マップエリア */}
+      <div className="relative max-w-2xl mx-auto h-[800px] overflow-y-auto pb-20 scrollbar-hide">
+        <div className="relative w-full h-[1200px]"> {/* スクロール可能な高さ */}
+
+          {/* 道を描画 */}
+          {/* Note: MapPath expects absolute coordinates or we adjust the component. 
+             Let's assume MapPath takes percentages or we adjust the scaling here.
+             The previous MapPath implementation used raw coordinates for SVG path.
+             Let's adjust the props passed to MapPath to match the visual scaling.
+             Actually, let's just pass the raw points and let MapPath handle it or style it.
+             Wait, MapPath implementation took points and made a path string.
+             If I pass {x: 50, y: 10}, SVG path is "M 50 10 ...".
+             If the SVG is 100% width/height, these are small pixels.
+             I need to scale them to the container size or use percentages.
+             Let's use percentages in MapPath by setting viewBox="0 0 100 100" and preserveAspectRatio="none"?
+             No, that distorts the line thickness.
+             Better to use a fixed coordinate system or pass pixel values.
+             Let's assume the container is roughly 600px wide.
+             x: 0-100 -> 0-600px.
+             y: 0-100 -> 0-1200px (based on height).
+          */}
+
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path
+              d={mapPoints.map((p, i) =>
+                `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
+              ).join(' ')}
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.6)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+            <path
+              d={mapPoints.map((p, i) =>
+                `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
+              ).join(' ')}
+              fill="none"
+              stroke="#d97706"
+              strokeWidth="0.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="2 2"
+              className="animate-pulse"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+
+          {/* ノードを描画 */}
           {lessons.map((lesson, index) => (
-            <motion.div
+            <StageNode
               key={lesson.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+              x={mapPoints[index].x}
+              y={mapPoints[index].y}
+              index={index}
+              title={lesson.title}
+              isUnlocked={lesson.isUnlocked}
+              isCompleted={lesson.isCompleted}
+              isActive={index === activeLessonIndex}
               onClick={() => handleLessonClick(lesson)}
-              className={`
-                relative bg-white rounded-xl shadow-md overflow-hidden transition-all
-                ${lesson.isUnlocked
-                  ? 'cursor-pointer hover:shadow-xl hover:scale-102 transform'
-                  : 'opacity-50 cursor-not-allowed'
-                }
-              `}
-            >
-              {/* ロックオーバーレイ */}
-              {!lesson.isUnlocked && (
-                <div className="absolute inset-0 bg-gray-900 bg-opacity-20 flex items-center justify-center z-10">
-                  <svg className="w-10 h-10 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
-
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 flex-1">
-                    {/* レッスン番号 */}
-                    <div className={`
-                      flex items-center justify-center w-12 h-12 rounded-full font-bold text-lg
-                      ${lesson.isCompleted
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200 text-gray-700'
-                      }
-                    `}>
-                      {lesson.isCompleted ? '✓' : index + 1}
-                    </div>
-
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900">{lesson.title}</h3>
-                      <p className="text-gray-600 text-sm mt-1">{lesson.description}</p>
-
-                      <div className="flex items-center space-x-4 mt-3">
-                        {lesson.xp_reward && (
-                          <span className="text-sm text-amber-600">⭐ {lesson.xp_reward} XP</span>
-                        )}
-                        {lesson.duration_minutes && (
-                          <span className="text-sm text-gray-500">⏱️ {lesson.duration_minutes}分</span>
-                        )}
-                        {lesson.isCompleted && (
-                          <span className="text-sm font-medium text-green-600">✓ 完了</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 矢印アイコン */}
-                  {lesson.isUnlocked && (
-                    <div className="ml-4">
-                      <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
+            />
           ))}
         </div>
-
-        {/* 空の状態 */}
-        {lessons.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-2xl shadow-lg">
-            <p className="text-gray-600">まだレッスンがありません</p>
-          </div>
-        )}
       </div>
-    </div>
+    </div >
   );
 };
 
