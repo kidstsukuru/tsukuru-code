@@ -14,11 +14,24 @@
     "edit": "Edit",
     "back": "Back",
     "next": "Next",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "create": "Create",
+    "update": "Update",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "none": "None",
+    "admin": "Admin",
+    "home": "Home"
   },
   "home": {
-    "title": "Learn Programming Like a Game!",
-    "subtitle": "Welcome to the World of Coding!",
+    "title": "Learn Coding Like a Game!",
+    "subtitle": "Enter the World of Programming!",
     "description": "Welcome to Tsukuru Code! Master programming fundamentals by solving puzzles and controlling characters.",
     "startAdventure": "Start Your Adventure!",
     "popularCourses": "Popular Courses",
@@ -47,58 +60,177 @@
       "email": "Please enter your email address",
       "password": "Please enter your password",
       "name": "Please enter your name",
-      "confirmPassword": "Please confirm your password"
+      "confirmPassword": "Please confirm your password",
+      "title": "Please enter a title",
+      "description": "Please enter a description"
     },
     "invalid": {
-      "email": "Please enter a valid email address"
+      "email": "Please enter a valid email address",
+      "url": "Please enter a valid URL"
     },
     "min": {
       "password": "Password must be at least 6 characters",
-      "name": "Name must be at least 2 characters"
+      "name": "Name must be at least 2 characters",
+      "title": "Title must be at least 3 characters"
+    },
+    "max": {
+      "title": "Title must be 100 characters or less",
+      "description": "Description must be 500 characters or less"
     },
     "passwordMismatch": "Passwords do not match"
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back, {{name}}!",
+    "welcomeMessage": "Let's explore the world of programming today!",
     "stats": {
       "level": "Level",
-      "xp": "XP",
+      "currentLevel": "Current Level",
+      "xp": "Experience Points",
+      "xpLabel": "Experience (XP)",
       "loginStreak": "Login Streak",
+      "loginStreakLabel": "Day Streak",
+      "badges": "Badges",
+      "badgesLabel": "Badges Earned",
       "days": "days"
     },
     "myCourses": "My Courses",
+    "continueLearning": "Continue Learning",
     "progress": "Progress",
     "startLearning": "Start Learning",
     "continue": "Continue",
-    "badges": "Badges"
+    "noCourses": "No published courses available",
+    "createCourse": "Create a Course",
+    "recentBadges": "Recent Badges",
+    "viewAllBadges": "View All Badges",
+    "sidebar": {
+      "home": "Home",
+      "creations": "Creators World",
+      "myCreations": "My Creations",
+      "admin": "Admin",
+      "currentXP": "Current XP",
+      "nextLevel": "To Next Level"
+    }
   },
   "course": {
     "lessons": "Lessons",
+    "levels": "Levels",
     "completed": "Completed",
     "inProgress": "In Progress",
     "notStarted": "Not Started",
+    "locked": "Locked",
     "start": "Start",
     "continue": "Continue",
+    "selectLevel": "Select a Level",
+    "backToCourse": "Back to Course",
     "difficulty": {
       "beginner": "Beginner",
       "intermediate": "Intermediate",
       "advanced": "Advanced"
     },
     "estimatedTime": "Estimated Time",
-    "hours": "hours"
+    "hours": "hours",
+    "minutes": "minutes",
+    "clearLevel": "Level Clear!",
+    "bonusXP": "Bonus XP",
+    "nextLevel": "Next Level",
+    "backToLevels": "Back to Levels"
+  },
+  "level": {
+    "level": "Level",
+    "clear": "Level {{level}} Complete!",
+    "congratulations": "Congratulations!",
+    "bonusXP": "Bonus XP: +{{xp}}",
+    "totalXP": "Total XP: {{xp}}",
+    "nextLevel": "Next Level",
+    "backToLevels": "Back to Levels",
+    "unlocked": "New level unlocked!",
+    "progress": "Progress: {{completed}}/{{total}}",
+    "allLessonsCompleted": "All Lessons Completed"
+  },
+  "lesson": {
+    "lesson": "Lesson",
+    "complete": "Lesson Complete",
+    "start": "Start Lesson",
+    "completeLesson": "Complete Lesson",
+    "nextLesson": "Next Lesson",
+    "previousLesson": "Previous Lesson",
+    "backToLevel": "Back to Level"
   },
   "creations": {
     "title": "Creators World",
+    "galaxyTitle": "CREATIVE GALAXY",
     "description": "View others' creations and share your own!",
+    "exploreCreations": "Explore Creations",
     "myCreations": "My Creations",
     "allCreations": "All Creations",
     "create": "Create",
+    "createNew": "Post New Creation",
     "share": "Share",
     "like": "Like",
-    "comments": "Comments"
+    "likes": "Likes",
+    "unlike": "Unlike",
+    "comments": "Comments",
+    "plays": "Plays",
+    "play": "Play",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this creation?",
+    "noCreations": "No creations yet",
+    "noCreationsFound": "No creations found",
+    "loadingCreations": "Loading creations...",
+    "loadFailed": "Failed to load creations",
+    "featuredCreation": "Featured Creation",
+    "allWorks": "All Works",
+    "sortBy": "Sort By",
+    "sortByPlays": "Most Popular",
+    "sortByLikes": "Most Liked",
+    "sortByNew": "Newest",
+    "searchPlaceholder": "Search creations...",
+    "creator": "Creator",
+    "createdBy": "By: {{name}}",
+    "createdAt": "Posted",
+    "otherCreations": "Other Creations",
+    "backToGallery": "Back to Gallery"
+  },
+  "createCreation": {
+    "title": "Post New Creation",
+    "editTitle": "Edit Creation",
+    "form": {
+      "title": "Creation Title",
+      "titlePlaceholder": "e.g., Space Adventure Game",
+      "description": "Creation Description",
+      "descriptionPlaceholder": "Describe your creation...",
+      "thumbnailUrl": "Thumbnail Image URL",
+      "thumbnailPlaceholder": "https://example.com/image.jpg",
+      "codeUrl": "Creation URL (Scratch, etc.)",
+      "codePlaceholder": "https://scratch.mit.edu/projects/...",
+      "preview": "Preview",
+      "thumbnailPreview": "Thumbnail Preview",
+      "embedPreview": "Embed Preview"
+    },
+    "submit": "Post",
+    "update": "Update",
+    "publishing": "Publishing...",
+    "updating": "Updating...",
+    "success": "Creation posted successfully!",
+    "updateSuccess": "Creation updated successfully!",
+    "failed": "Failed to post creation",
+    "updateFailed": "Failed to update creation"
+  },
+  "myCreations": {
+    "title": "My Creations",
+    "stats": "Statistics",
+    "totalCreations": "Total Creations",
+    "totalLikes": "Total Likes",
+    "totalPlays": "Total Plays",
+    "noCreations": "You haven't posted any creations yet",
+    "createFirst": "Post your first creation!",
+    "deleteSuccess": "Creation deleted successfully",
+    "deleteFailed": "Failed to delete creation"
   },
   "badges": {
+    "badges": "Badges",
     "login_5_days": "5-Day Login",
     "login_10_days": "10-Day Login",
     "first_course": "First Course",
@@ -110,12 +242,154 @@
     "first_login": "First Login",
     "acquired": "Acquired",
     "notAcquired": "Not Acquired",
-    "congratulations": "Congratulations!"
+    "congratulations": "Congratulations!",
+    "newBadge": "New badge earned!"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "levels": "Levels",
+    "lessons": "Lessons",
+    "users": "Users",
+    "analytics": "Analytics",
+    "subscriptions": "Subscriptions",
+    "settings": "Settings",
+    "backToSite": "Back to Site",
+    "overview": "Overview",
+    "stats": {
+      "totalUsers": "Total Users",
+      "totalCourses": "Total Courses",
+      "totalLessons": "Total Lessons",
+      "totalCreations": "Total Creations",
+      "activeUsers": "Active Users",
+      "newUsers": "New Users"
+    },
+    "courses": {
+      "title": "Course Management",
+      "createNew": "Create New Course",
+      "editCourse": "Edit Course",
+      "noCourses": "No courses found",
+      "published": "Published",
+      "draft": "Draft",
+      "togglePublish": "Toggle Publish Status",
+      "deleteConfirm": "Are you sure you want to delete this course?",
+      "form": {
+        "id": "Course ID",
+        "title": "Course Title",
+        "description": "Description",
+        "icon": "Icon (Emoji)",
+        "difficulty": "Difficulty",
+        "estimatedHours": "Estimated Hours",
+        "published": "Publish"
+      }
+    },
+    "levels": {
+      "title": "Level Management",
+      "createNew": "Create New Level",
+      "editLevel": "Edit Level",
+      "noLevels": "No levels found",
+      "selectCourse": "Please select a course",
+      "backToCourses": "Back to Courses",
+      "form": {
+        "courseId": "Course ID",
+        "levelNumber": "Level Number",
+        "title": "Level Title",
+        "description": "Description",
+        "xpReward": "Clear Reward XP",
+        "orderIndex": "Display Order"
+      }
+    },
+    "lessons": {
+      "title": "Lesson Management",
+      "createNew": "Create New Lesson",
+      "editLesson": "Edit Lesson",
+      "noLessons": "No lessons found",
+      "form": {
+        "id": "Lesson ID",
+        "levelId": "Level ID",
+        "title": "Lesson Title",
+        "description": "Description",
+        "content": "Content",
+        "xpReward": "Reward XP",
+        "orderIndex": "Display Order",
+        "editMode": "Edit",
+        "previewMode": "Preview"
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "searchPlaceholder": "Search users...",
+      "filterByRole": "Filter by Role",
+      "filterByStatus": "Filter by Status",
+      "allRoles": "All Roles",
+      "allStatuses": "All Statuses",
+      "student": "Student",
+      "admin": "Admin",
+      "superAdmin": "Super Admin",
+      "active": "Active",
+      "inactive": "Inactive",
+      "noUsers": "No users found",
+      "userDetails": "User Details",
+      "role": "Role",
+      "status": "Status",
+      "changeRole": "Change Role",
+      "toggleStatus": "Toggle Status",
+      "stats": {
+        "level": "Level",
+        "xp": "XP",
+        "completedLessons": "Completed Lessons",
+        "progressRate": "Progress Rate"
+      }
+    },
+    "analytics": {
+      "title": "Analytics",
+      "period": "Period",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "userActivity": "User Activity",
+      "newUsers": "New Users",
+      "activeUsers": "Active Users",
+      "courseStats": "Course Statistics",
+      "enrollments": "Enrollments",
+      "completionRate": "Completion Rate",
+      "averageProgress": "Average Progress",
+      "popularCourses": "Popular Courses",
+      "rank": "Rank",
+      "courseName": "Course Name",
+      "students": "Students"
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "managePlan": "Manage Plan",
+    "currentPlan": "Current Plan",
+    "upgradePlan": "Upgrade Plan",
+    "cancelPlan": "Cancel Plan",
+    "plans": {
+      "free": "Free Plan",
+      "premium": "Premium",
+      "family": "Family"
+    },
+    "features": "Features",
+    "pricing": "Pricing"
   },
   "errors": {
     "networkError": "Network error occurred",
     "serverError": "Server error occurred",
     "unknownError": "An unexpected error occurred",
-    "notFound": "Page not found"
+    "notFound": "Page not found",
+    "unauthorized": "Authentication required",
+    "forbidden": "Access denied",
+    "loadFailed": "Failed to load",
+    "saveFailed": "Failed to save",
+    "deleteFailed": "Failed to delete",
+    "updateFailed": "Failed to update"
+  },
+  "success": {
+    "saved": "Saved successfully",
+    "updated": "Updated successfully",
+    "deleted": "Deleted successfully",
+    "created": "Created successfully"
   }
 }

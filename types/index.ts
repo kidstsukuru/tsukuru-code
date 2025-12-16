@@ -180,3 +180,128 @@ export interface CreationPlay {
   creation_id: string;
   played_at: string;
 }
+
+// =====================================================
+// サブスクリプションシステム関連の型定義
+// =====================================================
+
+// プラン名
+export type PlanName = 'free' | 'premium' | 'family';
+
+// サブスクリプションステータス
+export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'trialing';
+
+// サブスクリプション履歴のアクション
+export type SubscriptionAction =
+  | 'created'
+  | 'upgraded'
+  | 'downgraded'
+  | 'canceled'
+  | 'renewed'
+  | 'payment_failed'
+  | 'status_changed';
+
+// プラン機能
+export interface PlanFeatures {
+  courses_access: 'limited' | 'all';
+  max_level: number | 'unlimited';
+  creations_per_month: number | 'unlimited';
+  ads: boolean;
+  support: 'community' | 'priority';
+  badges: boolean;
+  progress_reports: boolean;
+  priority_support: boolean;
+  priority_response_time?: string;
+  family_accounts?: number;
+  parent_dashboard?: boolean;
+  learning_time_management?: boolean;
+  family_gallery?: boolean;
+}
+
+// プラン制限
+export interface PlanLimits {
+  max_courses: number | null;
+  max_level: number | null;
+  creations_per_month: number | null;
+  max_family_members?: number;
+}
+
+// サブスクリプションプラン
+export interface Plan {
+  id: string;
+  name: PlanName;
+  display_name: string;
+  description?: string;
+  price: number;  // 月額料金（円）
+  stripe_price_id?: string;
+  features: PlanFeatures;
+  limits: PlanLimits;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ユーザーのサブスクリプション
+export interface Subscription {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  status: SubscriptionStatus;
+  current_period_start?: string;
+  current_period_end?: string;
+  cancel_at_period_end: boolean;
+  canceled_at?: string;
+  trial_start?: string;
+  trial_end?: string;
+  created_at: string;
+  updated_at: string;
+  // フロントエンド用の拡張フィールド（JOIN結果）
+  plan?: Plan;
+}
+
+// サブスクリプション履歴
+export interface SubscriptionHistory {
+  id: string;
+  user_id: string;
+  subscription_id?: string;
+  plan_id: string;
+  action: SubscriptionAction;
+  status_before?: SubscriptionStatus;
+  status_after?: SubscriptionStatus;
+  amount?: number;  // 支払額（円）
+  metadata?: Record<string, any>;
+  created_at: string;
+  // フロントエンド用の拡張フィールド（JOIN結果）
+  plan?: Plan;
+}
+
+// ファミリープランメンバー
+export interface FamilyMember {
+  id: string;
+  subscription_id: string;
+  parent_user_id: string;
+  child_user_id: string;
+  nickname?: string;
+  learning_time_limit?: number;  // 1日の学習時間制限（分）
+  allowed_courses?: string[];  // 許可されたコースID配列
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // フロントエンド用の拡張フィールド（JOIN結果）
+  child_user?: DBUser;
+  parent_user?: DBUser;
+}
+
+// アクティブなサブスクリプション（ビュー用）
+export interface ActiveSubscriptionWithPlan extends Subscription {
+  plan_name: PlanName;
+  plan_display_name: string;
+  plan_price: number;
+  plan_features: PlanFeatures;
+  plan_limits: PlanLimits;
+  user_email: string;
+  user_name: string;
+}

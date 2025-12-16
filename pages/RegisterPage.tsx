@@ -40,15 +40,16 @@ const RegisterPage: React.FC = () => {
 
   return (
     <PageTransition>
-      <div className="flex justify-center items-center py-20">
-          <Card>
-              <div className="p-8 w-96">
-                  <h2 className="text-2xl font-bold text-center mb-6">新規登録</h2>
-                  <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <div className="flex justify-center items-center py-8 sm:py-12 lg:py-20 px-4">
+          <Card className="w-full max-w-md">
+              <div className="p-6 sm:p-8">
+                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8">新規登録</h2>
+                  <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit(onSubmit)}>
                       <Input
                         label="なまえ"
                         type="text"
                         placeholder="たろう"
+                        autoComplete="name"
                         error={errors.name?.message}
                         {...register('name')}
                       />
@@ -56,6 +57,8 @@ const RegisterPage: React.FC = () => {
                         label="メールアドレス"
                         type="email"
                         placeholder="email@example.com"
+                        autoComplete="email"
+                        inputMode="email"
                         error={errors.email?.message}
                         {...register('email')}
                       />
@@ -63,6 +66,7 @@ const RegisterPage: React.FC = () => {
                         label="パスワード"
                         type="password"
                         placeholder="********"
+                        autoComplete="new-password"
                         error={errors.password?.message}
                         {...register('password')}
                       />
@@ -70,15 +74,16 @@ const RegisterPage: React.FC = () => {
                         label="パスワード（かくにん）"
                         type="password"
                         placeholder="********"
+                        autoComplete="new-password"
                         error={errors.confirmPassword?.message}
                         {...register('confirmPassword')}
                       />
-                      <Button type="submit" variant="primary" className="w-full !mt-6" disabled={loading}>
+                      <Button type="submit" variant="primary" className="w-full !mt-6 sm:!mt-8" disabled={loading}>
                           {loading ? '登録中...' : '登録して冒険をはじめる！'}
                       </Button>
                   </form>
-                  <p className="text-center mt-4 text-sm text-gray-600">
-                      アカウントはもうある？ <a href="#" onClick={handleLoginClick} className="text-amber-500 hover:underline">ログイン</a>
+                  <p className="text-center mt-4 sm:mt-6 text-sm sm:text-base text-gray-600">
+                      アカウントはもうある？ <a href="#" onClick={handleLoginClick} className="text-amber-500 hover:underline font-medium">ログイン</a>
                   </p>
               </div>
           </Card>

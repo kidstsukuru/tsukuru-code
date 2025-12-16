@@ -40,15 +40,17 @@ const LoginPage: React.FC = () => {
 
   return (
     <PageTransition>
-      <div className="flex justify-center items-center py-20">
-          <Card>
-              <div className="p-8 w-96">
-                  <h2 className="text-2xl font-bold text-center mb-6">ログイン</h2>
-                  <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      <div className="flex justify-center items-center py-8 sm:py-12 lg:py-20 px-4">
+          <Card className="w-full max-w-md">
+              <div className="p-6 sm:p-8">
+                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8">ログイン</h2>
+                  <form className="space-y-5 sm:space-y-6" onSubmit={handleSubmit(onSubmit)}>
                       <Input
                         label="メールアドレス"
                         type="email"
                         placeholder="email@example.com"
+                        autoComplete="email"
+                        inputMode="email"
                         error={errors.email?.message}
                         {...register('email')}
                       />
@@ -56,6 +58,7 @@ const LoginPage: React.FC = () => {
                         label="パスワード"
                         type="password"
                         placeholder="********"
+                        autoComplete="current-password"
                         error={errors.password?.message}
                         {...register('password')}
                       />
@@ -63,8 +66,8 @@ const LoginPage: React.FC = () => {
                           {loading ? 'ログイン中...' : 'ログインする'}
                       </Button>
                   </form>
-                  <p className="text-center mt-4 text-sm text-gray-600">
-                      アカウントがまだない？ <a href="#" onClick={handleRegisterClick} className="text-amber-500 hover:underline">新規登録</a>
+                  <p className="text-center mt-4 sm:mt-6 text-sm sm:text-base text-gray-600">
+                      アカウントがまだない？ <a href="#" onClick={handleRegisterClick} className="text-amber-500 hover:underline font-medium">新規登録</a>
                   </p>
               </div>
           </Card>

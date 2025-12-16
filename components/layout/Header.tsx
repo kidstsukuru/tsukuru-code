@@ -131,6 +131,14 @@ const Header: React.FC = () => {
                                     </a>
                                     <a
                                         href="#"
+                                        onClick={(e) => { e.preventDefault(); navigate('/subscription'); setIsMenuOpen(false); }}
+                                        className="block px-4 py-3 min-h-[44px] text-sm text-gray-700 hover:bg-amber-100 active:bg-amber-200 transition-colors flex items-center"
+                                        role="menuitem"
+                                    >
+                                        サブスクリプション
+                                    </a>
+                                    <a
+                                        href="#"
                                         onClick={(e) => { e.preventDefault(); logout(); setIsMenuOpen(false); }}
                                         className="block px-4 py-3 min-h-[44px] text-sm text-gray-700 hover:bg-amber-100 active:bg-amber-200 transition-colors flex items-center"
                                         role="menuitem"

@@ -31,13 +31,19 @@ const Button: React.FC<ButtonProps> = ({
 
   const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`;
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
     <motion.button
       className={combinedClassName}
       disabled={disabled}
       whileHover={!disabled ? { scale: 1.05, y: -2 } : {}}
       whileTap={!disabled ? { scale: 0.95 } : {}}
-      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+      transition={
+        isMobile
+          ? { type: 'tween', duration: 0.2 }  // モバイル: シンプルなアニメーション
+          : { type: 'spring', stiffness: 400, damping: 17 }  // デスクトップ: スプリングアニメーション
+      }
       aria-disabled={disabled}
       {...props}
     >

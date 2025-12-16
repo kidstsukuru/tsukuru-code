@@ -14,7 +14,20 @@
     "edit": "編集",
     "back": "戻る",
     "next": "次へ",
-    "loading": "読み込み中..."
+    "loading": "読み込み中...",
+    "search": "検索",
+    "filter": "フィルター",
+    "sort": "並び替え",
+    "create": "作成",
+    "update": "更新",
+    "close": "閉じる",
+    "confirm": "確認",
+    "yes": "はい",
+    "no": "いいえ",
+    "all": "すべて",
+    "none": "なし",
+    "admin": "管理画面",
+    "home": "ホーム"
   },
   "home": {
     "title": "ゲームみたいに楽しく学ぼう！",
@@ -47,58 +60,177 @@
       "email": "メールアドレスを入力してください",
       "password": "パスワードを入力してください",
       "name": "名前を入力してください",
-      "confirmPassword": "パスワード（確認）を入力してください"
+      "confirmPassword": "パスワード（確認）を入力してください",
+      "title": "タイトルを入力してください",
+      "description": "説明を入力してください"
     },
     "invalid": {
-      "email": "正しいメールアドレスを入力してください"
+      "email": "正しいメールアドレスを入力してください",
+      "url": "正しいURLを入力してください"
     },
     "min": {
       "password": "パスワードは6文字以上で入力してください",
-      "name": "名前は2文字以上で入力してください"
+      "name": "名前は2文字以上で入力してください",
+      "title": "タイトルは3文字以上で入力してください"
+    },
+    "max": {
+      "title": "タイトルは100文字以内で入力してください",
+      "description": "説明は500文字以内で入力してください"
     },
     "passwordMismatch": "パスワードが一致しません"
   },
   "dashboard": {
     "title": "ダッシュボード",
-    "welcome": "{{name}}さん、おかえりなさい！",
+    "welcome": "おかえりなさい、{{name}}さん！",
+    "welcomeMessage": "今日もプログラミングの世界を冒険しよう！",
     "stats": {
       "level": "レベル",
+      "currentLevel": "現在のレベル",
       "xp": "経験値",
-      "loginStreak": "連続ログイン日数",
+      "xpLabel": "けいけんち (XP)",
+      "loginStreak": "連続ログイン",
+      "loginStreakLabel": "日連続ログイン",
+      "badges": "バッジ",
+      "badgesLabel": "このバッジ",
       "days": "日"
     },
     "myCourses": "マイコース",
+    "continueLearning": "学習をつづける",
     "progress": "進捗",
     "startLearning": "学習を始める",
     "continue": "続きから",
-    "badges": "獲得バッジ"
+    "noCourses": "公開されているコースがありません",
+    "createCourse": "コースを作成する",
+    "recentBadges": "最近のバッジ",
+    "viewAllBadges": "すべてのバッジを見る",
+    "sidebar": {
+      "home": "ホーム",
+      "creations": "クリエイターズワールド",
+      "myCreations": "マイ作品",
+      "admin": "管理画面",
+      "currentXP": "現在のXP",
+      "nextLevel": "次のレベルまで"
+    }
   },
   "course": {
     "lessons": "レッスン",
+    "levels": "レベル",
     "completed": "完了",
     "inProgress": "学習中",
     "notStarted": "未開始",
+    "locked": "ロック中",
     "start": "開始する",
     "continue": "続きから",
+    "selectLevel": "レベルを選択",
+    "backToCourse": "コースに戻る",
     "difficulty": {
       "beginner": "初心者向け",
       "intermediate": "中級者向け",
       "advanced": "上級者向け"
     },
     "estimatedTime": "推定時間",
-    "hours": "時間"
+    "hours": "時間",
+    "minutes": "分",
+    "clearLevel": "レベルクリア！",
+    "bonusXP": "ボーナスXP",
+    "nextLevel": "次のレベル",
+    "backToLevels": "レベル選択に戻る"
+  },
+  "level": {
+    "level": "レベル",
+    "clear": "レベル {{level}} クリア！",
+    "congratulations": "おめでとうございます！",
+    "bonusXP": "ボーナスXP: +{{xp}}",
+    "totalXP": "合計XP: {{xp}}",
+    "nextLevel": "次のレベルへ",
+    "backToLevels": "レベル選択へ",
+    "unlocked": "新しいレベルが解放されました！",
+    "progress": "進捗: {{completed}}/{{total}}",
+    "allLessonsCompleted": "全レッスン完了"
+  },
+  "lesson": {
+    "lesson": "レッスン",
+    "complete": "レッスン完了",
+    "start": "レッスンを始める",
+    "completeLesson": "レッスンを完了する",
+    "nextLesson": "次のレッスン",
+    "previousLesson": "前のレッスン",
+    "backToLevel": "レベルに戻る"
   },
   "creations": {
     "title": "クリエイターズワールド",
+    "galaxyTitle": "CREATIVE GALAXY",
     "description": "みんなの作品を見たり、自分の作品を共有しよう！",
+    "exploreCreations": "作品を探検しよう",
     "myCreations": "自分の作品",
     "allCreations": "みんなの作品",
     "create": "作品を作る",
+    "createNew": "新しい作品を投稿",
     "share": "共有する",
     "like": "いいね",
-    "comments": "コメント"
+    "likes": "いいね",
+    "unlike": "いいねを取り消す",
+    "comments": "コメント",
+    "plays": "再生回数",
+    "play": "再生",
+    "edit": "編集",
+    "delete": "削除",
+    "deleteConfirm": "この作品を削除してもよろしいですか？",
+    "noCreations": "作品がまだありません",
+    "noCreationsFound": "作品が見つかりませんでした",
+    "loadingCreations": "作品を読み込み中...",
+    "loadFailed": "作品の読み込みに失敗しました",
+    "featuredCreation": "注目の作品",
+    "allWorks": "全ての作品",
+    "sortBy": "並び替え",
+    "sortByPlays": "人気順",
+    "sortByLikes": "いいね順",
+    "sortByNew": "新着順",
+    "searchPlaceholder": "作品を検索...",
+    "creator": "作者",
+    "createdBy": "作者: {{name}}",
+    "createdAt": "投稿日",
+    "otherCreations": "他の作品",
+    "backToGallery": "ギャラリーに戻る"
+  },
+  "createCreation": {
+    "title": "新しい作品を投稿",
+    "editTitle": "作品を編集",
+    "form": {
+      "title": "作品のタイトル",
+      "titlePlaceholder": "例: 宇宙探検ゲーム",
+      "description": "作品の説明",
+      "descriptionPlaceholder": "この作品について説明してください...",
+      "thumbnailUrl": "サムネイル画像のURL",
+      "thumbnailPlaceholder": "https://example.com/image.jpg",
+      "codeUrl": "作品のURL (Scratch等)",
+      "codePlaceholder": "https://scratch.mit.edu/projects/...",
+      "preview": "プレビュー",
+      "thumbnailPreview": "サムネイルプレビュー",
+      "embedPreview": "埋め込みプレビュー"
+    },
+    "submit": "投稿する",
+    "update": "更新する",
+    "publishing": "投稿中...",
+    "updating": "更新中...",
+    "success": "作品を投稿しました！",
+    "updateSuccess": "作品を更新しました！",
+    "failed": "投稿に失敗しました",
+    "updateFailed": "更新に失敗しました"
+  },
+  "myCreations": {
+    "title": "マイ作品",
+    "stats": "統計",
+    "totalCreations": "作品数",
+    "totalLikes": "合計いいね",
+    "totalPlays": "合計再生回数",
+    "noCreations": "まだ作品を投稿していません",
+    "createFirst": "最初の作品を投稿しよう！",
+    "deleteSuccess": "作品を削除しました",
+    "deleteFailed": "削除に失敗しました"
   },
   "badges": {
+    "badges": "バッジ",
     "login_5_days": "5日間ログイン",
     "login_10_days": "10日間ログイン",
     "first_course": "はじめてのコース",
@@ -110,12 +242,154 @@
     "first_login": "初ログイン",
     "acquired": "獲得済み",
     "notAcquired": "未獲得",
-    "congratulations": "おめでとうございます！"
+    "congratulations": "おめでとうございます！",
+    "newBadge": "新しいバッジを獲得しました！"
+  },
+  "admin": {
+    "title": "管理画面",
+    "dashboard": "ダッシュボード",
+    "courses": "コース管理",
+    "levels": "レベル管理",
+    "lessons": "レッスン管理",
+    "users": "ユーザー管理",
+    "analytics": "分析・統計",
+    "subscriptions": "サブスクリプション",
+    "settings": "設定",
+    "backToSite": "サイトに戻る",
+    "overview": "概要",
+    "stats": {
+      "totalUsers": "総ユーザー数",
+      "totalCourses": "総コース数",
+      "totalLessons": "総レッスン数",
+      "totalCreations": "総作品数",
+      "activeUsers": "アクティブユーザー",
+      "newUsers": "新規ユーザー"
+    },
+    "courses": {
+      "title": "コース管理",
+      "createNew": "新規コース作成",
+      "editCourse": "コースを編集",
+      "noCourses": "コースがありません",
+      "published": "公開",
+      "draft": "下書き",
+      "togglePublish": "公開/非公開を切り替え",
+      "deleteConfirm": "このコースを削除してもよろしいですか？",
+      "form": {
+        "id": "コースID",
+        "title": "コースタイトル",
+        "description": "説明",
+        "icon": "アイコン（絵文字）",
+        "difficulty": "難易度",
+        "estimatedHours": "推定学習時間（時間）",
+        "published": "公開する"
+      }
+    },
+    "levels": {
+      "title": "レベル管理",
+      "createNew": "新規レベル作成",
+      "editLevel": "レベルを編集",
+      "noLevels": "レベルがありません",
+      "selectCourse": "コースを選択してください",
+      "backToCourses": "コース一覧に戻る",
+      "form": {
+        "courseId": "コースID",
+        "levelNumber": "レベル番号",
+        "title": "レベルタイトル",
+        "description": "説明",
+        "xpReward": "クリア報酬XP",
+        "orderIndex": "表示順序"
+      }
+    },
+    "lessons": {
+      "title": "レッスン管理",
+      "createNew": "新規レッスン作成",
+      "editLesson": "レッスンを編集",
+      "noLessons": "レッスンがありません",
+      "form": {
+        "id": "レッスンID",
+        "levelId": "レベルID",
+        "title": "レッスンタイトル",
+        "description": "説明",
+        "content": "コンテンツ",
+        "xpReward": "報酬XP",
+        "orderIndex": "表示順序",
+        "editMode": "編集",
+        "previewMode": "プレビュー"
+      }
+    },
+    "users": {
+      "title": "ユーザー管理",
+      "searchPlaceholder": "ユーザーを検索...",
+      "filterByRole": "ロールでフィルター",
+      "filterByStatus": "ステータスでフィルター",
+      "allRoles": "全てのロール",
+      "allStatuses": "全てのステータス",
+      "student": "生徒",
+      "admin": "管理者",
+      "superAdmin": "スーパー管理者",
+      "active": "有効",
+      "inactive": "無効",
+      "noUsers": "ユーザーが見つかりません",
+      "userDetails": "ユーザー詳細",
+      "role": "ロール",
+      "status": "ステータス",
+      "changeRole": "ロールを変更",
+      "toggleStatus": "ステータスを切り替え",
+      "stats": {
+        "level": "レベル",
+        "xp": "XP",
+        "completedLessons": "完了レッスン",
+        "progressRate": "進捗率"
+      }
+    },
+    "analytics": {
+      "title": "分析・統計",
+      "period": "期間",
+      "last7Days": "過去7日間",
+      "last30Days": "過去30日間",
+      "userActivity": "ユーザーアクティビティ",
+      "newUsers": "新規ユーザー",
+      "activeUsers": "アクティブユーザー",
+      "courseStats": "コース統計",
+      "enrollments": "登録者数",
+      "completionRate": "完了率",
+      "averageProgress": "平均進捗率",
+      "popularCourses": "人気コース",
+      "rank": "順位",
+      "courseName": "コース名",
+      "students": "受講者"
+    }
+  },
+  "subscription": {
+    "title": "サブスクリプション",
+    "managePlan": "プラン管理",
+    "currentPlan": "現在のプラン",
+    "upgradePlan": "プランをアップグレード",
+    "cancelPlan": "プランをキャンセル",
+    "plans": {
+      "free": "無料プラン",
+      "premium": "プレミアム",
+      "family": "ファミリー"
+    },
+    "features": "機能",
+    "pricing": "料金プラン"
   },
   "errors": {
     "networkError": "ネットワークエラーが発生しました",
     "serverError": "サーバーエラーが発生しました",
     "unknownError": "予期しないエラーが発生しました",
-    "notFound": "ページが見つかりません"
+    "notFound": "ページが見つかりません",
+    "unauthorized": "認証が必要です",
+    "forbidden": "アクセスが拒否されました",
+    "loadFailed": "読み込みに失敗しました",
+    "saveFailed": "保存に失敗しました",
+    "deleteFailed": "削除に失敗しました",
+    "updateFailed": "更新に失敗しました"
+  },
+  "success": {
+    "saved": "保存しました",
+    "updated": "更新しました",
+    "deleted": "削除しました",
+    "created": "作成しました"
   }
 }

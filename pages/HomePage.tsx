@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import PageTransition from '../components/animations/PageTransition';
@@ -26,6 +27,7 @@ const WebIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -52,16 +54,14 @@ const HomePage: React.FC = () => {
     <PageTransition>
       <div className="container mx-auto px-6 py-12 text-center">
         <motion.h1
-          className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-amber-600 leading-tight"
+          className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-amber-600 leading-tight whitespace-pre-line"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          ゲームみたいに
+          {t('home.title')}
           <br />
-          楽しく学ぼう！
-          <br />
-          <span className="text-yellow-500">プログラミングの世界へ！</span>
+          <span className="text-yellow-500">{t('home.subtitle')}</span>
         </motion.h1>
         <motion.p
           className="mt-6 text-base sm:text-lg text-gray-600 max-w-md md:max-w-2xl mx-auto"
@@ -69,9 +69,7 @@ const HomePage: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
         >
-          「Tsukuru code」へようこそ！
-          <br className="sm:hidden" />
-          パズルを解いたり、キャラクターを動かしながら、プログラミングの基礎をマスターしよう。
+          {t('home.description')}
         </motion.p>
         <motion.div
           className="mt-8"
@@ -80,7 +78,7 @@ const HomePage: React.FC = () => {
           transition={{ delay: 0.5, duration: 0.4 }}
         >
           <Button variant="primary" size="large" onClick={() => navigate('/login')}>
-            冒険をはじめる！
+            {t('home.startAdventure')}
           </Button>
         </motion.div>
 
@@ -91,7 +89,7 @@ const HomePage: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
           >
-            人気のコース
+            {t('home.popularCourses')}
           </motion.h2>
           <motion.div
             className="grid md:grid-cols-3 gap-8"
@@ -104,9 +102,9 @@ const HomePage: React.FC = () => {
                 <div className="bg-amber-100 p-4 rounded-full mb-4">
                   <ScratchIcon className="w-12 h-12 text-amber-500" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Scratch入門</h3>
+                <h3 className="text-xl font-bold mb-2">{t('home.scratchIntro')}</h3>
                 <p className="text-gray-600">
-                  ブロックを組み合わせるだけで、アニメやゲームが作れる！
+                  {t('home.scratchDesc')}
                 </p>
               </Card>
             </motion.div>
@@ -115,9 +113,9 @@ const HomePage: React.FC = () => {
                 <div className="bg-yellow-100 p-4 rounded-full mb-4">
                   <PythonIcon className="w-12 h-12 text-yellow-500" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Pythonアドベンチャー</h3>
+                <h3 className="text-xl font-bold mb-2">{t('home.pythonAdventure')}</h3>
                 <p className="text-gray-600">
-                  AIやWebアプリで使われる本格的な言語に挑戦！ (準備中)
+                  {t('home.pythonDesc')}
                 </p>
               </Card>
             </motion.div>
@@ -126,9 +124,9 @@ const HomePage: React.FC = () => {
                 <div className="bg-green-100 p-4 rounded-full mb-4">
                   <WebIcon className="w-12 h-12 text-green-500" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Webサイト探検隊</h3>
+                <h3 className="text-xl font-bold mb-2">{t('home.webExplorer')}</h3>
                 <p className="text-gray-600">
-                  自分だけのホームページを作ってみよう！ (準備中)
+                  {t('home.webDesc')}
                 </p>
               </Card>
             </motion.div>

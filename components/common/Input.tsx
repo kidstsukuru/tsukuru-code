@@ -14,7 +14,7 @@ const Input: React.FC<InputProps> = ({ label, id, className = '', error, require
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-bold text-gray-700 mb-1"
+          className="block text-sm sm:text-base font-bold text-gray-700 mb-2"
         >
           {label}
           {required && <span className="text-red-500 ml-1" aria-label="required">*</span>}
@@ -22,7 +22,7 @@ const Input: React.FC<InputProps> = ({ label, id, className = '', error, require
       )}
       <input
         id={inputId}
-        className={`w-full px-4 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus-visible:ring-2 ${error ? 'focus:ring-red-400 focus:border-red-400 focus-visible:ring-red-400' : 'focus:ring-amber-400 focus:border-amber-400 focus-visible:ring-amber-400'} outline-none transition-colors ${className}`}
+        className={`w-full px-4 py-3 min-h-[48px] text-base border ${error ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus-visible:ring-2 ${error ? 'focus:ring-red-400 focus:border-red-400 focus-visible:ring-red-400' : 'focus:ring-amber-400 focus:border-amber-400 focus-visible:ring-amber-400'} outline-none transition-colors ${className}`}
         aria-invalid={error ? 'true' : 'false'}
         aria-describedby={error ? errorId : undefined}
         aria-required={required}
@@ -32,7 +32,7 @@ const Input: React.FC<InputProps> = ({ label, id, className = '', error, require
       {error && (
         <p
           id={errorId}
-          className="mt-1 text-sm text-red-600"
+          className="mt-2 text-sm sm:text-base text-red-600 font-medium"
           role="alert"
           aria-live="polite"
         >

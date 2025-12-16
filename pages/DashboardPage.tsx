@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { getPublishedCourses } from '../services/supabaseService';
 import { Course } from '../types/index';
@@ -11,6 +12,7 @@ import Sidebar from '../components/dashboard/Sidebar';
 import toast from 'react-hot-toast';
 
 const DashboardPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const isAdmin = useAuthStore((state) => state.isAdmin);
@@ -26,7 +28,7 @@ const DashboardPage: React.FC = () => {
         setCourses(data);
       } catch (error) {
         console.error('Error fetching courses:', error);
-        toast.error('コースの取得に失敗しました');
+        toast.error(t('errors.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -49,44 +51,40 @@ const DashboardPage: React.FC = () => {
         <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-amber-600 leading-tight">
-              おかえりなさい、
-              <br className="sm:hidden" />
-              {user.name}さん！
+              {t('dashboard.welcome', { name: user.name })}
             </h1>
             <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600 leading-relaxed">
-              今日もプログラミングの世界を
-              <br className="sm:hidden" />
-              冒険しよう！
+              {t('dashboard.welcomeMessage')}
             </p>
           </div>
 
       {/* Stats Section */}
       <div className="mt-6 sm:mt-8 lg:mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-        <StatCard icon="🔥" value={user.loginStreak} label="日連続ログイン" color="yellow" />
-        <StatCard icon="✨" value={user.xp} label="けいけんち (XP)" color="yellow" />
-        <StatCard icon="🚀" value={`レベル ${user.level}`} label="現在のレベル" color="amber" />
-        <StatCard icon="🏆" value={user.badges.filter(b => b.acquired).length} label="このバッジ" color="indigo" />
+        <StatCard icon="🔥" value={user.loginStreak} label={t('dashboard.stats.loginStreakLabel')} color="yellow" />
+        <StatCard icon="✨" value={user.xp} label={t('dashboard.stats.xpLabel')} color="yellow" />
+        <StatCard icon="🚀" value={`${t('dashboard.stats.level')} ${user.level}`} label={t('dashboard.stats.currentLevel')} color="amber" />
+        <StatCard icon="🏆" value={user.badges.filter(b => b.acquired).length} label={t('dashboard.stats.badgesLabel')} color="indigo" />
       </div>
 
       <div className="mt-8 sm:mt-10 lg:mt-12 grid lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Main Content: Courses */}
         <div className="lg:col-span-2">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 leading-tight">学習をつづける</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 leading-tight">{t('dashboard.continueLearning')}</h2>
 
             {loading ? (
               <div className="text-center py-8">
-                <p className="text-gray-600">読み込み中...</p>
+                <p className="text-gray-600">{t('common.loading')}</p>
               </div>
             ) : courses.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-600">公開されているコースがありません</p>
+                <p className="text-gray-600">{t('dashboard.noCourses')}</p>
                 {isAdmin && (
                   <Button
                     variant="primary"
                     className="mt-4"
                     onClick={() => navigate('/admin/courses')}
                   >
-                    コースを作成する
+                    {t('dashboard.createCourse')}
                   </Button>
                 )}
               </div>
@@ -108,17 +106,17 @@ const DashboardPage: React.FC = () => {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            約{course.estimated_hours}時間
+                            {t('course.estimatedTime')}: {course.estimated_hours}{t('course.hours')}
                           </span>
                         )}
                         <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
-                          {course.difficulty === 'beginner' ? '初級' : course.difficulty === 'intermediate' ? '中級' : '上級'}
+                          {t(`course.difficulty.${course.difficulty}`)}
                         </span>
                       </div>
                     </div>
                     <div className="bg-gray-50 p-3 sm:p-4 rounded-b-xl">
                       <Button variant="primary" className="w-full" onClick={() => navigate(`/course/${course.id}`)}>
-                        学習する
+                        {t('dashboard.startLearning')}
                       </Button>
                     </div>
                   </Card>
@@ -129,7 +127,7 @@ const DashboardPage: React.FC = () => {
 
         {/* Sidebar: Badges */}
         <div>
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 leading-tight">くんしょう</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 leading-tight">{t('badges.badges')}</h2>
             <Card className="p-4 sm:p-6">
                 <div className="grid grid-cols-3 gap-3 sm:gap-4">
                     {user.badges.map(badge => (

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
 import { getCreationById, updateCreation } from '../services/supabaseService';
 import { useAuthStore } from '../store/authStore';
+import { extractEmbedUrl, getEmbedCodeExample, isValidGameUrl } from '../utils/embedHelpers';
 import type { Creation } from '../types';
 
 const ArrowLeftIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -27,8 +28,7 @@ const creationSchema = z.object({
     .optional()
     .or(z.literal('')),
   code_url: z.string()
-    .min(1, 'コードURLは必須です')
-    .url('有効なURLを入力してください'),
+    .min(1, 'コードURLは必須です'),
   is_published: z.boolean(),
 });
 
@@ -42,6 +42,8 @@ const EditCreationPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [creation, setCreation] = useState<Creation | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [urlType, setUrlType] = useState<'embed' | 'url'>('embed');
+  const [embedPreviewUrl, setEmbedPreviewUrl] = useState<string>('');
 
   const {
     register,
@@ -108,6 +110,26 @@ const EditCreationPage: React.FC = () => {
     }
   }, [thumbnailUrl]);
 
+  // 埋め込みプレビューの更新
+  React.useEffect(() => {
+    if (codeUrl) {
+      if (urlType === 'embed') {
+        // Scratch埋め込みコードの場合、URLを抽出
+        const extracted = extractEmbedUrl(codeUrl);
+        setEmbedPreviewUrl(extracted || '');
+      } else {
+        // ゲームURLの場合、そのまま使用
+        if (isValidGameUrl(codeUrl)) {
+          setEmbedPreviewUrl(codeUrl);
+        } else {
+          setEmbedPreviewUrl('');
+        }
+      }
+    } else {
+      setEmbedPreviewUrl('');
+    }
+  }, [codeUrl, urlType]);
+
   const onSubmit = async (data: CreationFormData) => {
     if (!user || !id) {
       toast.error('ログインが必要です');
@@ -118,11 +140,32 @@ const EditCreationPage: React.FC = () => {
     try {
       setIsSubmitting(true);
 
+      let finalUrl: string;
+
+      if (urlType === 'embed') {
+        // 埋め込みコードからURLを抽出
+        const extractedUrl = extractEmbedUrl(data.code_url);
+        if (!extractedUrl) {
+          toast.error('有効な埋め込みコードまたはURLを入力してください');
+          setIsSubmitting(false);
+          return;
+        }
+        finalUrl = extractedUrl;
+      } else {
+        // ゲームURLの場合、そのまま使用
+        if (!isValidGameUrl(data.code_url)) {
+          toast.error('有効なURLを入力してください');
+          setIsSubmitting(false);
+          return;
+        }
+        finalUrl = data.code_url.trim();
+      }
+
       await updateCreation(id, {
         title: data.title,
         description: data.description || undefined,
         thumbnail_url: data.thumbnail_url || undefined,
-        code_url: data.code_url,
+        code_url: finalUrl,
         is_published: data.is_published,
       });
 
@@ -250,27 +293,52 @@ const EditCreationPage: React.FC = () => {
               </p>
             </div>
 
-            {/* Code URL */}
+            {/* URL Type Selector */}
+            <div>
+              <label htmlFor="url_type" className="block text-sm font-medium text-gray-300 mb-2">
+                作品のタイプ <span className="text-red-400">*</span>
+              </label>
+              <select
+                id="url_type"
+                value={urlType}
+                onChange={(e) => setUrlType(e.target.value as 'embed' | 'url')}
+                className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer"
+              >
+                <option value="embed">Scratch埋め込みコード</option>
+                <option value="url">ゲームURL（サーバーアップロード済み）</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {urlType === 'embed'
+                  ? '💡 Scratchプロジェクトの埋め込みコードまたはURLを入力'
+                  : '🎮 サーバーにアップロードしたゲームのURLを入力'}
+              </p>
+            </div>
+
+            {/* Code URL / Embed Code */}
             <div>
               <label htmlFor="code_url" className="block text-sm font-medium text-gray-300 mb-2">
-                作品URL（Scratchプロジェクトなど） <span className="text-red-400">*</span>
+                {urlType === 'embed' ? 'Scratch埋め込みコード / URL' : 'ゲームURL'} <span className="text-red-400">*</span>
               </label>
-              <input
+              <textarea
                 id="code_url"
-                type="url"
                 {...register('code_url')}
-                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 ${
+                rows={urlType === 'embed' ? 5 : 2}
+                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 font-mono text-sm resize-none ${
                   errors.code_url
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-slate-700 focus:ring-cyan-500'
                 }`}
-                placeholder="https://scratch.mit.edu/projects/123456789"
+                placeholder={urlType === 'embed'
+                  ? getEmbedCodeExample()
+                  : 'https://example.com/games/my-game/index.html'}
               />
               {errors.code_url && (
                 <p className="mt-1 text-sm text-red-400">{errors.code_url.message}</p>
               )}
-              <p className="mt-1 text-xs text-gray-500">
-                ScratchプロジェクトのURLを入力してください
+              <p className="mt-2 text-xs text-gray-500">
+                {urlType === 'embed'
+                  ? '💡 Scratchの「共有」→「埋め込みコード」をコピーして貼り付けるか、プロジェクトURLを入力してください'
+                  : '🎮 iframe で表示可能なゲームページのURLを入力してください'}
               </p>
             </div>
 
@@ -331,15 +399,16 @@ const EditCreationPage: React.FC = () => {
           </div>
 
           {/* Embed Preview */}
-          {codeUrl && codeUrl.includes('scratch.mit.edu') && (
+          {embedPreviewUrl && (
             <div className="mb-6">
-              <p className="text-sm text-gray-400 mb-2">Scratch プレビュー</p>
-              <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden">
+              <p className="text-sm text-gray-400 mb-2">プレビュー</p>
+              <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden shadow-lg border border-slate-700">
                 <iframe
-                  src={codeUrl.replace('/projects/', '/projects/') + '/embed'}
+                  src={embedPreviewUrl}
                   className="w-full h-full"
                   allowFullScreen
                   title="Preview"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 />
               </div>
             </div>

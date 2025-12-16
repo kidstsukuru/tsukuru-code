@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import GalaxyBackground from '../components/creations/GalaxyBackground';
+import CreationCard from '../components/creations/CreationCard';
 import {
   getCreationById,
   likeCreation,
@@ -10,7 +15,6 @@ import {
 } from '../services/supabaseService';
 import { useAuthStore } from '../store/authStore';
 import type { Creation } from '../types';
-import CreationCard from '../components/creations/CreationCard';
 
 const HeartIcon = ({ filled, ...props }: React.SVGProps<SVGSVGElement> & { filled?: boolean }) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
@@ -31,6 +35,7 @@ const ArrowLeftIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const CreationDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -68,7 +73,7 @@ const CreationDetailPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading creation:', error);
-      toast.error('作品の読み込みに失敗しました');
+      toast.error(t('creations.loadFailed'));
       navigate('/creations');
     } finally {
       setLoading(false);
@@ -77,7 +82,7 @@ const CreationDetailPage: React.FC = () => {
 
   const handleLike = async () => {
     if (!user) {
-      toast.error('いいねするにはログインが必要です');
+      toast.error(t('auth.loginTitle'));
       navigate('/login');
       return;
     }
@@ -95,7 +100,7 @@ const CreationDetailPage: React.FC = () => {
           is_liked: false,
           likes: creation.likes - 1,
         });
-        toast.success('いいねを解除しました');
+        toast.success(t('creations.unlike'));
       } else {
         // いいねを追加
         await likeCreation(user.uid, creation.id);
@@ -104,11 +109,20 @@ const CreationDetailPage: React.FC = () => {
           is_liked: true,
           likes: creation.likes + 1,
         });
-        toast.success('いいねしました！');
+
+        // Particle Effect
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#d946ef', '#06b6d4', '#fbbf24']
+        });
+
+        toast.success(t('creations.like'));
       }
     } catch (error: any) {
       console.error('Error toggling like:', error);
-      toast.error(error.message || 'いいねの処理に失敗しました');
+      toast.error(error.message || t('errors.updateFailed'));
     } finally {
       setIsLiking(false);
     }
@@ -116,24 +130,25 @@ const CreationDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-6 py-12">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-xl text-gray-400">読み込み中...</div>
-        </div>
+      <div className="relative min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <GalaxyBackground />
+        <div className="text-cyan-400 text-2xl font-mono animate-pulse">{t('common.loading')}</div>
       </div>
     );
   }
 
   if (!creation) {
     return (
-      <div className="container mx-auto px-6 py-12">
-        <div className="text-center py-12">
-          <p className="text-gray-400">作品が見つかりませんでした</p>
+      <div className="relative min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <GalaxyBackground />
+        <div className="text-center p-8 bg-slate-900/80 rounded-2xl border border-red-500/50 backdrop-blur-md">
+          <div className="text-4xl mb-4">⚠️</div>
+          <p className="text-red-400 text-xl mb-6">{t('creations.noCreationsFound')}</p>
           <button
             onClick={() => navigate('/creations')}
-            className="mt-4 px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors"
+            className="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors font-bold"
           >
-            作品一覧に戻る
+            {t('creations.backToGallery')}
           </button>
         </div>
       </div>
@@ -143,128 +158,144 @@ const CreationDetailPage: React.FC = () => {
   const defaultThumbnail = 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=800&auto=format&fit=crop';
 
   return (
-    <div className="container mx-auto px-6 py-8 text-gray-200">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/creations')}
-        className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors mb-6"
-      >
-        <ArrowLeftIcon className="w-5 h-5" />
-        <span>作品一覧に戻る</span>
-      </button>
+    <div className="relative min-h-screen text-gray-200 overflow-x-hidden">
+      <GalaxyBackground />
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Creation Preview */}
-        <div className="lg:col-span-2">
-          {/* Thumbnail */}
-          <div className="relative rounded-xl overflow-hidden shadow-2xl shadow-cyan-500/20 mb-6">
-            <img
-              src={imgError ? defaultThumbnail : (creation.thumbnail_url || defaultThumbnail)}
-              alt={creation.title}
-              onError={() => setImgError(true)}
-              className="w-full h-64 md:h-96 object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-slate-900/20" />
-          </div>
+      <div className="container mx-auto px-4 py-6 relative z-10">
+        {/* Navigation HUD */}
+        <motion.button
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          onClick={() => navigate('/creations')}
+          className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors mb-6 group bg-slate-900/50 px-4 py-2 rounded-full border border-cyan-500/30 backdrop-blur-sm hover:border-cyan-500/80"
+        >
+          <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <span className="font-mono uppercase tracking-wider text-sm">{t('creations.backToGallery').toUpperCase()}</span>
+        </motion.button>
 
-          {/* Embed - Scratch Project */}
-          <div className="bg-slate-800 rounded-xl p-6 shadow-xl">
-            <h3 className="text-xl font-bold text-gray-200 mb-4">作品を実行</h3>
-            <div className="aspect-video bg-slate-900 rounded-lg flex items-center justify-center">
-              {creation.code_url.includes('scratch.mit.edu') ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Cockpit View (Left Column) */}
+          <div className="lg:col-span-2 space-y-8">
+
+            {/* Project Viewer Frame */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="relative bg-slate-900/80 rounded-3xl p-1 border border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.15)] backdrop-blur-xl"
+            >
+              {/* Decorative Cockpit Elements */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1 bg-cyan-500/50 rounded-b-full shadow-[0_0_10px_#06b6d4]" />
+              <div className="absolute -left-1 top-10 bottom-10 w-1 bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent" />
+              <div className="absolute -right-1 top-10 bottom-10 w-1 bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent" />
+
+              <div className="aspect-video bg-black rounded-2xl overflow-hidden relative group">
+                {/* 埋め込みURLを直接表示（作成・編集時に検証済み） */}
                 <iframe
-                  src={creation.code_url.replace('/projects/', '/projects/') + '/embed'}
-                  className="w-full h-full rounded-lg"
+                  src={creation.code_url}
+                  className="w-full h-full"
                   allowFullScreen
                   title={creation.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 />
-              ) : (
-                <div className="text-center p-8">
-                  <PlayIcon className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400 mb-4">この作品を見るには外部リンクを開いてください</p>
-                  <a
-                    href={creation.code_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-lg transition-colors"
-                  >
-                    作品を開く
-                  </a>
-                </div>
-              )}
-            </div>
+              </div>
+            </motion.div>
+
+            {/* Mission Briefing (Description) */}
+            {creation.description && (
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-slate-900/60 rounded-2xl p-6 border border-white/10 backdrop-blur-md relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
+                <h3 className="text-xl font-bold text-cyan-300 mb-4 flex items-center gap-2 font-mono">
+                  <span className="text-2xl">📝</span> {t('creations.description').toUpperCase()}
+                </h3>
+                <p className="text-gray-300 whitespace-pre-wrap leading-relaxed text-lg">
+                  {creation.description}
+                </p>
+              </motion.div>
+            )}
           </div>
 
-          {/* Description */}
-          {creation.description && (
-            <div className="mt-6 bg-slate-800 rounded-xl p-6 shadow-xl">
-              <h3 className="text-xl font-bold text-gray-200 mb-3">作品の説明</h3>
-              <p className="text-gray-300 whitespace-pre-wrap">{creation.description}</p>
-            </div>
-          )}
-        </div>
+          {/* Right Column - Data Panel */}
+          <div className="lg:col-span-1 space-y-6">
 
-        {/* Right Column - Info & Stats */}
-        <div className="lg:col-span-1">
-          {/* Title & Creator */}
-          <div className="bg-slate-800 rounded-xl p-6 shadow-xl mb-6">
-            <h1 className="text-3xl font-bold text-gray-100 mb-4">{creation.title}</h1>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                {creation.creator?.name?.charAt(0) || '?'}
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">作者</p>
-                <p className="text-lg font-semibold text-gray-200">{creation.creator?.name || '匿名'}</p>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-slate-900 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-cyan-400">{creation.plays}</div>
-                <div className="text-sm text-gray-400">再生回数</div>
-              </div>
-              <div className="bg-slate-900 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-fuchsia-400">{creation.likes}</div>
-                <div className="text-sm text-gray-400">いいね</div>
-              </div>
-            </div>
-
-            {/* Like Button */}
-            <button
-              onClick={handleLike}
-              disabled={isLiking}
-              className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
-                creation.is_liked
-                  ? 'bg-fuchsia-500 hover:bg-fuchsia-600 text-white'
-                  : 'bg-slate-700 hover:bg-slate-600 text-gray-200'
-              } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
+            {/* Creator & Stats Panel */}
+            <motion.div
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="bg-slate-900/80 rounded-3xl p-6 border border-fuchsia-500/20 shadow-lg backdrop-blur-xl relative overflow-hidden"
             >
-              <HeartIcon filled={creation.is_liked} className="w-6 h-6" />
-              <span>{creation.is_liked ? 'いいね済み' : 'いいね！'}</span>
-            </button>
+              {/* Holographic Scan Line */}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-fuchsia-500/5 to-transparent animate-scan pointer-events-none" style={{ height: '200%' }} />
 
-            {/* Created Date */}
-            <div className="mt-4 text-sm text-gray-400 text-center">
-              投稿日: {new Date(creation.created_at).toLocaleDateString('ja-JP')}
-            </div>
-          </div>
+              <h1 className="text-3xl font-bold text-white mb-6 leading-tight relative z-10">
+                {creation.title}
+              </h1>
 
-          {/* Other Creations by Same Creator */}
-          {otherCreations.length > 0 && (
-            <div className="bg-slate-800 rounded-xl p-6 shadow-xl">
-              <h3 className="text-xl font-bold text-gray-200 mb-4">
-                {creation.creator?.name || '同じ作者'}の他の作品
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {otherCreations.map(other => (
-                  <CreationCard key={other.id} creation={other} />
-                ))}
+              <div className="flex items-center gap-4 mb-8 p-4 bg-white/5 rounded-xl border border-white/5 relative z-10">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-fuchsia-500/30">
+                  {creation.creator?.name?.charAt(0) || '?'}
+                </div>
+                <div>
+                  <p className="text-xs text-fuchsia-300 uppercase tracking-wider font-bold">{t('creations.creator')}</p>
+                  <p className="text-xl font-bold text-white">{creation.creator?.name || t('creations.creator')}</p>
+                </div>
               </div>
-            </div>
-          )}
+
+              <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
+                <div className="bg-black/40 rounded-xl p-4 text-center border border-cyan-500/20">
+                  <div className="text-3xl font-black text-cyan-400 font-mono">{creation.plays}</div>
+                  <div className="text-xs text-cyan-200/70 uppercase tracking-widest mt-1">{t('creations.plays')}</div>
+                </div>
+                <div className="bg-black/40 rounded-xl p-4 text-center border border-fuchsia-500/20">
+                  <div className="text-3xl font-black text-fuchsia-400 font-mono">{creation.likes}</div>
+                  <div className="text-xs text-fuchsia-200/70 uppercase tracking-widest mt-1">{t('creations.likes')}</div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleLike}
+                disabled={isLiking}
+                className={`w-full relative overflow-hidden group px-6 py-4 rounded-xl font-bold transition-all transform active:scale-95 ${creation.is_liked
+                    ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.4)]'
+                    : 'bg-slate-800 hover:bg-slate-700 text-gray-200 border border-white/10'
+                  } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="relative z-10 flex items-center justify-center gap-3">
+                  <HeartIcon filled={creation.is_liked} className={`w-7 h-7 ${creation.is_liked ? 'animate-bounce' : 'group-hover:text-pink-500 transition-colors'}`} />
+                  <span className="text-lg">{creation.is_liked ? t('creations.like').toUpperCase() + '!' : t('creations.like').toUpperCase()}</span>
+                </div>
+              </button>
+
+              <div className="mt-6 text-center text-xs text-gray-500 font-mono relative z-10">
+                {t('creations.createdAt')}: {new Date(creation.created_at).toLocaleDateString('ja-JP')}
+              </div>
+            </motion.div>
+
+            {/* Related Projects */}
+            {otherCreations.length > 0 && (
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="bg-slate-900/60 rounded-2xl p-6 border border-white/5 backdrop-blur-md"
+              >
+                <h3 className="text-lg font-bold text-gray-200 mb-4 flex items-center gap-2">
+                  <span className="text-xl">🚀</span> {t('creations.otherCreations')}
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {otherCreations.map(other => (
+                    <CreationCard key={other.id} creation={other} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
     </div>

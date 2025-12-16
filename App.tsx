@@ -29,6 +29,10 @@ const CreateCreationPage = lazy(() => import('./pages/CreateCreationPage'));
 const EditCreationPage = lazy(() => import('./pages/EditCreationPage'));
 const MyCreationsPage = lazy(() => import('./pages/MyCreationsPage'));
 
+// 遅延ロード: サブスクリプション
+const PricingPage = lazy(() => import('./pages/PricingPage'));
+const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
+
 // 遅延ロード: 管理画面（管理者のみアクセス）
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
 const AdminCoursesPage = lazy(() => import('./pages/AdminCoursesPage'));
@@ -125,7 +129,29 @@ const App: React.FC = () => {
           </PublicOnlyRoute>
         } />
 
+        {/* プライシングページ（誰でもアクセス可能） */}
+        <Route path="/pricing" element={
+          <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
+            <Header />
+            <main id="main-content">
+              <PricingPage />
+            </main>
+            <BottomNav />
+          </div>
+        } />
+
         {/* 保護されたルート（認証必須） */}
+        <Route path="/subscription" element={
+          <ProtectedRoute>
+            <div className="bg-amber-50 min-h-screen text-gray-800 pb-20 lg:pb-0">
+              <Header />
+              <main id="main-content">
+                <SubscriptionPage />
+              </main>
+              <BottomNav />
+            </div>
+          </ProtectedRoute>
+        } />
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <div className="bg-amber-50 min-h-screen text-gray-800 pb-20 lg:pb-0">
