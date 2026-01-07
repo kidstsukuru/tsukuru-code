@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './supabaseService';
+import { supabase } from './supabaseService';
 import { Course, Level, Lesson, DBUser, UserRole } from '../types/index';
 
 // ====================================
@@ -6,7 +6,7 @@ import { Course, Level, Lesson, DBUser, UserRole } from '../types/index';
 // ====================================
 
 export const getAllCourses = async (): Promise<Course[]> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('courses')
     .select('*')
     .order('order_index', { ascending: true });
@@ -20,7 +20,7 @@ export const getAllCourses = async (): Promise<Course[]> => {
 };
 
 export const getCourseById = async (id: string): Promise<Course | null> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('courses')
     .select('*')
     .eq('id', id)
@@ -35,7 +35,7 @@ export const getCourseById = async (id: string): Promise<Course | null> => {
 };
 
 export const createCourse = async (course: Omit<Course, 'created_at' | 'updated_at'>): Promise<Course> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('courses')
     .insert([course])
     .select()
@@ -50,7 +50,7 @@ export const createCourse = async (course: Omit<Course, 'created_at' | 'updated_
 };
 
 export const updateCourse = async (id: string, updates: Partial<Course>): Promise<Course> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('courses')
     .update(updates)
     .eq('id', id)
@@ -66,7 +66,7 @@ export const updateCourse = async (id: string, updates: Partial<Course>): Promis
 };
 
 export const deleteCourse = async (id: string): Promise<void> => {
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('courses')
     .delete()
     .eq('id', id);
@@ -83,7 +83,7 @@ export const updateCourseOrder = async (courseIds: string[]): Promise<void> => {
     order_index: index
   }));
 
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('courses')
     .upsert(updates);
 
@@ -98,7 +98,7 @@ export const updateCourseOrder = async (courseIds: string[]): Promise<void> => {
 // ====================================
 
 export const getLevelsByCourseId = async (courseId: string): Promise<Level[]> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('levels')
     .select('*')
     .eq('course_id', courseId)
@@ -113,7 +113,7 @@ export const getLevelsByCourseId = async (courseId: string): Promise<Level[]> =>
 };
 
 export const getLevelById = async (id: string): Promise<Level | null> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('levels')
     .select('*')
     .eq('id', id)
@@ -128,7 +128,7 @@ export const getLevelById = async (id: string): Promise<Level | null> => {
 };
 
 export const createLevel = async (level: Omit<Level, 'created_at' | 'updated_at'>): Promise<Level> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('levels')
     .insert([level])
     .select()
@@ -143,7 +143,7 @@ export const createLevel = async (level: Omit<Level, 'created_at' | 'updated_at'
 };
 
 export const updateLevel = async (id: string, updates: Partial<Level>): Promise<Level> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('levels')
     .update(updates)
     .eq('id', id)
@@ -159,7 +159,7 @@ export const updateLevel = async (id: string, updates: Partial<Level>): Promise<
 };
 
 export const deleteLevel = async (id: string): Promise<void> => {
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('levels')
     .delete()
     .eq('id', id);
@@ -176,7 +176,7 @@ export const updateLevelOrder = async (levelIds: string[]): Promise<void> => {
     level_number: index + 1
   }));
 
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('levels')
     .upsert(updates);
 
@@ -191,7 +191,7 @@ export const updateLevelOrder = async (levelIds: string[]): Promise<void> => {
 // ====================================
 
 export const getLessonsByCourseId = async (courseId: string): Promise<Lesson[]> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('lessons')
     .select('*')
     .eq('course_id', courseId)
@@ -206,7 +206,7 @@ export const getLessonsByCourseId = async (courseId: string): Promise<Lesson[]> 
 };
 
 export const getLessonsByLevelId = async (levelId: string): Promise<Lesson[]> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('lessons')
     .select('*')
     .eq('level_id', levelId)
@@ -221,7 +221,7 @@ export const getLessonsByLevelId = async (levelId: string): Promise<Lesson[]> =>
 };
 
 export const getLessonById = async (id: string): Promise<Lesson | null> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('lessons')
     .select('*')
     .eq('id', id)
@@ -236,7 +236,7 @@ export const getLessonById = async (id: string): Promise<Lesson | null> => {
 };
 
 export const createLesson = async (lesson: Omit<Lesson, 'created_at' | 'updated_at'>): Promise<Lesson> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('lessons')
     .insert([lesson])
     .select()
@@ -251,7 +251,7 @@ export const createLesson = async (lesson: Omit<Lesson, 'created_at' | 'updated_
 };
 
 export const updateLesson = async (id: string, updates: Partial<Lesson>): Promise<Lesson> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('lessons')
     .update(updates)
     .eq('id', id)
@@ -267,7 +267,7 @@ export const updateLesson = async (id: string, updates: Partial<Lesson>): Promis
 };
 
 export const deleteLesson = async (id: string): Promise<void> => {
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('lessons')
     .delete()
     .eq('id', id);
@@ -284,7 +284,7 @@ export const updateLessonOrder = async (lessonIds: string[]): Promise<void> => {
     order_index: index
   }));
 
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('lessons')
     .upsert(updates);
 
@@ -308,7 +308,7 @@ export interface UserWithStats extends DBUser {
 }
 
 export const getAllUsers = async (): Promise<UserWithStats[]> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('users')
     .select('*')
     .order('created_at', { ascending: false });
@@ -334,7 +334,7 @@ export const getAllUsers = async (): Promise<UserWithStats[]> => {
 };
 
 export const getUserById = async (userId: string): Promise<UserWithStats | null> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('users')
     .select('*')
     .eq('id', userId)
@@ -358,7 +358,7 @@ export const getUserById = async (userId: string): Promise<UserWithStats | null>
 
 export const getUserProgressStats = async (userId: string) => {
   // 完了したレッスン数を取得
-  const { data: completedLessons, error: completedError } = await supabaseAdmin
+  const { data: completedLessons, error: completedError } = await supabase
     .from('user_progress')
     .select('lesson_id')
     .eq('user_id', userId)
@@ -369,7 +369,7 @@ export const getUserProgressStats = async (userId: string) => {
   }
 
   // 全レッスン数を取得
-  const { count: totalLessons, error: totalError } = await supabaseAdmin
+  const { count: totalLessons, error: totalError } = await supabase
     .from('lessons')
     .select('*', { count: 'exact', head: true });
 
@@ -378,7 +378,7 @@ export const getUserProgressStats = async (userId: string) => {
   }
 
   // ユーザーデータからXPとレベルを取得
-  const { data: userData, error: userError } = await supabaseAdmin
+  const { data: userData, error: userError } = await supabase
     .from('users')
     .select('xp, level')
     .eq('id', userId)
@@ -397,7 +397,7 @@ export const getUserProgressStats = async (userId: string) => {
 };
 
 export const updateUserRole = async (userId: string, role: UserRole): Promise<DBUser> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('users')
     .update({ role })
     .eq('id', userId)
@@ -420,7 +420,7 @@ export const toggleUserStatus = async (userId: string, isActive: boolean): Promi
   // Note: これはsupabase-jsの管理APIを使用する必要があります
   // 現在の実装では、カスタムフィールドでの管理を想定
 
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from('users')
     .update({ is_active: isActive })
     .eq('id', userId);
@@ -435,7 +435,7 @@ export const toggleUserStatus = async (userId: string, isActive: boolean): Promi
 };
 
 export const searchUsers = async (query: string): Promise<UserWithStats[]> => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('users')
     .select('*')
     .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
@@ -466,7 +466,7 @@ export const searchUsers = async (query: string): Promise<UserWithStats[]> => {
 
 const logAdminAction = async (action: string, targetUserId: string, details: any): Promise<void> => {
   try {
-    await supabaseAdmin.from('audit_logs').insert([
+    await supabase.from('audit_logs').insert([
       {
         action,
         target_user_id: targetUserId,
@@ -510,7 +510,7 @@ export interface UserActivityData {
 
 export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
   // 総ユーザー数
-  const { count: totalUsers } = await supabaseAdmin
+  const { count: totalUsers } = await supabase
     .from('users')
     .select('*', { count: 'exact', head: true });
 
@@ -518,29 +518,29 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const { count: activeUsers } = await supabaseAdmin
+  const { count: activeUsers } = await supabase
     .from('user_progress')
     .select('user_id', { count: 'exact', head: true })
     .gte('last_accessed_at', thirtyDaysAgo.toISOString())
     .not('user_id', 'is', null);
 
   // 総コース数
-  const { count: totalCourses } = await supabaseAdmin
+  const { count: totalCourses } = await supabase
     .from('courses')
     .select('*', { count: 'exact', head: true });
 
   // 総レッスン数
-  const { count: totalLessons } = await supabaseAdmin
+  const { count: totalLessons } = await supabase
     .from('lessons')
     .select('*', { count: 'exact', head: true });
 
   // 総作品数
-  const { count: totalCreations } = await supabaseAdmin
+  const { count: totalCreations } = await supabase
     .from('creations')
     .select('*', { count: 'exact', head: true });
 
   // 平均完了率を計算
-  const { data: progressData } = await supabaseAdmin
+  const { data: progressData } = await supabase
     .from('user_progress')
     .select('progress_percentage');
 
@@ -560,7 +560,7 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
 };
 
 export const getCourseStats = async (): Promise<CourseStats[]> => {
-  const { data: courses, error } = await supabaseAdmin
+  const { data: courses, error } = await supabase
     .from('courses')
     .select('id, title')
     .eq('is_published', true);
@@ -573,19 +573,19 @@ export const getCourseStats = async (): Promise<CourseStats[]> => {
   const courseStats = await Promise.all(
     courses.map(async (course) => {
       // コースのレッスン数
-      const { count: totalLessons } = await supabaseAdmin
+      const { count: totalLessons } = await supabase
         .from('lessons')
         .select('*', { count: 'exact', head: true })
         .eq('course_id', course.id);
 
       // コースに登録したユーザー数（進捗があるユーザー）
-      const { data: enrolledUsersData } = await supabaseAdmin
+      const { data: enrolledUsersData } = await supabase
         .from('user_progress')
         .select('user_id')
         .in(
           'lesson_id',
           (
-            await supabaseAdmin
+            await supabase
               .from('lessons')
               .select('id')
               .eq('course_id', course.id)
@@ -596,14 +596,14 @@ export const getCourseStats = async (): Promise<CourseStats[]> => {
       const enrolledUsers = uniqueUsers.size;
 
       // 完了率の計算
-      const { data: completedData } = await supabaseAdmin
+      const { data: completedData } = await supabase
         .from('user_progress')
         .select('user_id, lesson_id')
         .eq('status', 'completed')
         .in(
           'lesson_id',
           (
-            await supabaseAdmin
+            await supabase
               .from('lessons')
               .select('id')
               .eq('course_id', course.id)
@@ -616,13 +616,13 @@ export const getCourseStats = async (): Promise<CourseStats[]> => {
         totalPossibleCompletions > 0 ? (completedLessons / totalPossibleCompletions) * 100 : 0;
 
       // 平均進捗率
-      const { data: progressData } = await supabaseAdmin
+      const { data: progressData } = await supabase
         .from('user_progress')
         .select('progress_percentage')
         .in(
           'lesson_id',
           (
-            await supabaseAdmin
+            await supabase
               .from('lessons')
               .select('id')
               .eq('course_id', course.id)
@@ -632,7 +632,7 @@ export const getCourseStats = async (): Promise<CourseStats[]> => {
       const averageProgress =
         progressData && progressData.length > 0
           ? progressData.reduce((acc, p) => acc + (p.progress_percentage || 0), 0) /
-            progressData.length
+          progressData.length
           : 0;
 
       return {
@@ -663,14 +663,14 @@ export const getUserActivityData = async (days: number = 30): Promise<UserActivi
     const nextDateString = nextDate.toISOString().split('T')[0];
 
     // その日に登録したユーザー数
-    const { count: newUsers } = await supabaseAdmin
+    const { count: newUsers } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', dateString)
       .lt('created_at', nextDateString);
 
     // その日にアクティブだったユーザー数
-    const { data: activeUsersData } = await supabaseAdmin
+    const { data: activeUsersData } = await supabase
       .from('user_progress')
       .select('user_id')
       .gte('last_accessed_at', dateString)
