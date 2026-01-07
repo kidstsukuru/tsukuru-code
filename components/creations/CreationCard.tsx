@@ -54,6 +54,19 @@ const CreationCard: React.FC<CreationCardProps> = ({ creation }) => {
 
   const defaultThumbnail = 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=800&auto=format&fit=crop';
 
+  // URLが有効かどうかをチェック
+  const isValidUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false;
+    try {
+      const parsedUrl = new URL(url);
+      return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
+  const thumbnailUrl = isValidUrl(creation.thumbnail_url) ? creation.thumbnail_url : defaultThumbnail;
+
   return (
     <motion.div
       onClick={handleClick}
@@ -79,7 +92,7 @@ const CreationCard: React.FC<CreationCardProps> = ({ creation }) => {
         {/* Image Container */}
         <div className="relative aspect-square overflow-hidden">
           <LazyImage
-            src={imgError ? defaultThumbnail : (creation.thumbnail_url || defaultThumbnail)}
+            src={imgError ? defaultThumbnail : thumbnailUrl}
             alt={creation.title}
             onError={() => setImgError(true)}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
