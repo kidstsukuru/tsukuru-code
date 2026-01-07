@@ -15,13 +15,16 @@ console.log('Supabase Config:', {
 // 一般ユーザー用クライアント（RLS適用）
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// 管理者用クライアント（RLSバイパス）
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+// 管理者用クライアント（RLSバイパス）- Service Role Keyがある場合のみ作成
+// 注意: クライアントサイドでは Service Role Key を使用しないでください（セキュリティリスク）
+export const supabaseAdmin = supabaseServiceRoleKey
+  ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+  : null;
 
 console.log('Supabase initialized successfully');
 
