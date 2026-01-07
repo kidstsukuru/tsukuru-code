@@ -33,6 +33,9 @@ const MyCreationsPage = lazy(() => import('./pages/MyCreationsPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
 
+// 遅延ロード: 設定
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+
 // 遅延ロード: 管理画面（管理者のみアクセス）
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
 const AdminCoursesPage = lazy(() => import('./pages/AdminCoursesPage'));
@@ -162,6 +165,12 @@ const App: React.FC = () => {
                   </main>
                   <BottomNav />
                 </div>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             } />
             <Route path="/dashboard" element={

@@ -13,7 +13,14 @@ console.log('Supabase Config:', {
 });
 
 // 一般ユーザー用クライアント（RLS適用）
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// sessionStorageを使用してタブごとに独立したセッションを維持
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // 管理者用クライアント（RLSバイパス）- Service Role Keyがある場合のみ作成
 // 注意: クライアントサイドでは Service Role Key を使用しないでください（セキュリティリスク）
@@ -138,6 +145,39 @@ export const onAuthStateChange = (callback: (user: SupabaseUser | null) => void)
   return supabase.auth.onAuthStateChange((event, session) => {
     callback(session?.user ?? null);
   });
+};
+
+// アバター画像をアップロード
+export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
+  try {
+    // ファイル拡張子を取得
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `avatars/${fileName}`;
+
+    // 既存のアバターを削除（オプション）
+    // await supabase.storage.from('avatars').remove([`avatars/${userId}-*`]);
+
+    // 新しいアバターをアップロード
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+      });
+
+    if (uploadError) throw uploadError;
+
+    // 公開URLを取得
+    const { data } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  } catch (error: any) {
+    console.error('Error uploading avatar:', error);
+    throw new Error(error.message || 'アバターのアップロードに失敗しました');
+  }
 };
 
 // ====================================

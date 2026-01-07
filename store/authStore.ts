@@ -23,6 +23,7 @@ type AuthState = {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   completeLesson: (courseId: string, lessonId: string) => void;
+  updateAvatar: (style: string, seed: string) => void;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -56,6 +57,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             xp: userData.xp || 0,
             level: userData.level || 1,
             badges: userData.badges || badgeTemplates.map(b => ({ ...b, acquired: false })),
+            avatarStyle: userData.avatar_style || 'adventurer',
+            avatarSeed: userData.avatar_seed || userData.name || 'default',
             progress: userData.progress || {}
           };
 
@@ -118,6 +121,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           xp: userData.xp || 0,
           level: userData.level || 1,
           badges: userData.badges || badgeTemplates.map(b => ({ ...b, acquired: false })),
+          avatarStyle: userData.avatar_style || 'adventurer',
+          avatarSeed: userData.avatar_seed || userData.name || 'default',
           progress: userData.progress || {}
         };
 
@@ -255,6 +260,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: {
           ...state.user,
           progress: newProgress,
+        },
+      };
+    });
+  },
+
+  updateAvatar: (style, seed) => {
+    set((state) => {
+      if (!state.user) return state;
+      return {
+        user: {
+          ...state.user,
+          avatarStyle: style,
+          avatarSeed: seed,
         },
       };
     });

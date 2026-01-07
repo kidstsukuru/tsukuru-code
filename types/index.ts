@@ -21,6 +21,8 @@ export interface User {
   xp: number;
   level: number;
   badges: AppBadge[];
+  avatarStyle?: string;
+  avatarSeed?: string;
   progress: {
     [courseId: string]: {
       completedLessons: string[];
