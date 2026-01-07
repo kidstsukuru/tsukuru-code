@@ -1,22 +1,24 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
 import { User, AppBadge } from '../types/index';
-import { registerUser, loginUser, logoutUser, getUserData } from '../services/supabaseService';
+import { registerUser, loginUser, logoutUser, getUserData, onAuthStateChange, supabase } from '../services/supabaseService';
 
 const badgeTemplates: Omit<AppBadge, 'acquired'>[] = [
-    { id: 'login_5_days', name: '5日間ログイン', icon: '🗓️' },
-    { id: 'first_course', name: 'はじめてのコース', icon: '🎓' },
-    { id: 'perfect_lesson', name: 'パーフェクトレッスン', icon: '🎯' },
-    { id: 'bug_hunter', name: 'バグハンター', icon: '🐞' },
-    { id: 'code_master', name: 'コードマスター', icon: '🏆' },
+  { id: 'login_5_days', name: '5日間ログイン', icon: '🗓️' },
+  { id: 'first_course', name: 'はじめてのコース', icon: '🎓' },
+  { id: 'perfect_lesson', name: 'パーフェクトレッスン', icon: '🎯' },
+  { id: 'bug_hunter', name: 'バグハンター', icon: '🐞' },
+  { id: 'code_master', name: 'コードマスター', icon: '🏆' },
 ];
 
 type AuthState = {
   isAuthenticated: boolean;
   user: User | null;
   loading: boolean;
+  authInitialized: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -27,8 +29,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   user: null,
   loading: false,
+  authInitialized: false,
   isAdmin: false,
   isSuperAdmin: false,
+
+  initialize: async () => {
+    // 既に初期化済みの場合はスキップ
+    if (get().authInitialized) return;
+
+    try {
+      // Supabaseからセッションを取得
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        // ユーザーデータを取得
+        const userData = await getUserData(session.user.id);
+
+        if (userData) {
+          const userRole = userData.role || 'student';
+          const user: User = {
+            uid: session.user.id,
+            name: userData.name || session.user.user_metadata?.name || 'ユーザー',
+            email: session.user.email || '',
+            role: userRole,
+            loginStreak: userData.login_streak || 1,
+            xp: userData.xp || 0,
+            level: userData.level || 1,
+            badges: userData.badges || badgeTemplates.map(b => ({ ...b, acquired: false })),
+            progress: userData.progress || {}
+          };
+
+          set({
+            user,
+            isAuthenticated: true,
+            isAdmin: userRole === 'admin' || userRole === 'super_admin',
+            isSuperAdmin: userRole === 'super_admin',
+            authInitialized: true
+          });
+          return;
+        }
+      }
+
+      // セッションがない場合
+      set({ authInitialized: true });
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      set({ authInitialized: true });
+    }
+  },
 
   login: async (email, password) => {
     set({ loading: true });
