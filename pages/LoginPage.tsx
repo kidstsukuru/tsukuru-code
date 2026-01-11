@@ -40,37 +40,37 @@ const LoginPage: React.FC = () => {
 
   return (
     <PageTransition>
-      <div className="flex justify-center items-center py-8 sm:py-12 lg:py-20 px-4">
-          <Card className="w-full max-w-md">
-              <div className="p-6 sm:p-8">
-                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8">ログイン</h2>
-                  <form className="space-y-5 sm:space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                      <Input
-                        label="メールアドレス"
-                        type="email"
-                        placeholder="email@example.com"
-                        autoComplete="email"
-                        inputMode="email"
-                        error={errors.email?.message}
-                        {...register('email')}
-                      />
-                      <Input
-                        label="パスワード"
-                        type="password"
-                        placeholder="********"
-                        autoComplete="current-password"
-                        error={errors.password?.message}
-                        {...register('password')}
-                      />
-                      <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-                          {loading ? 'ログイン中...' : 'ログインする'}
-                      </Button>
-                  </form>
-                  <p className="text-center mt-4 sm:mt-6 text-sm sm:text-base text-gray-600">
-                      アカウントがまだない？ <a href="#" onClick={handleRegisterClick} className="text-amber-500 hover:underline font-medium">新規登録</a>
-                  </p>
-              </div>
-          </Card>
+      <div className="flex justify-center items-center py-8 sm:py-12 lg:py-20 landscape:py-2 px-4">
+        <Card className="w-full max-w-md landscape:max-w-lg">
+          <div className="p-6 sm:p-8 landscape:p-4">
+            <h2 className="text-xl sm:text-2xl landscape:text-lg font-bold text-center mb-6 sm:mb-8 landscape:mb-3">ログイン</h2>
+            <form className="space-y-5 sm:space-y-6 landscape:space-y-3" onSubmit={handleSubmit(onSubmit)}>
+              <Input
+                label="メールアドレス"
+                type="email"
+                placeholder="email@example.com"
+                autoComplete="email"
+                inputMode="email"
+                error={errors.email?.message}
+                {...register('email')}
+              />
+              <Input
+                label="パスワード"
+                type="password"
+                placeholder="********"
+                autoComplete="current-password"
+                error={errors.password?.message}
+                {...register('password')}
+              />
+              <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+                {loading ? 'ログイン中...' : 'ログインする'}
+              </Button>
+            </form>
+            <p className="text-center mt-4 sm:mt-6 landscape:mt-2 text-sm sm:text-base landscape:text-sm text-gray-600">
+              アカウントがまだない？ <a href="#" onClick={handleRegisterClick} className="text-amber-500 hover:underline font-medium">新規登録</a>
+            </p>
+          </div>
+        </Card>
       </div>
     </PageTransition>
   );

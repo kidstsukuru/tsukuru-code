@@ -29,6 +29,19 @@
     "admin": "管理画面",
     "home": "ホーム"
   },
+  "entry": {
+    "subtitle": "ゲームを作って、遊んで、学ぼう！",
+    "creatorsWorld": "クリエイターズワールド",
+    "creatorsWorldDesc": "みんなが作ったゲームで遊ぼう！ログイン不要で今すぐプレイできます。",
+    "playNow": "今すぐプレイ",
+    "noLoginRequired": "ログイン不要",
+    "learningPage": "学習ページ",
+    "learningPageDesc": "プログラミングを基礎から学んで、自分だけのゲームを作ろう！",
+    "startLearning": "学習を始める",
+    "loginRequired": "ログインが必要",
+    "noAccount": "アカウントをお持ちでない方は",
+    "register": "新規登録"
+  },
   "home": {
     "title": "ゲームみたいに楽しく学ぼう！",
     "subtitle": "プログラミングの世界へ！",
@@ -391,5 +404,117 @@
     "updated": "更新しました",
     "deleted": "削除しました",
     "created": "作成しました"
+  },
+  "settings": {
+    "title": "設定",
+    "profile": {
+      "title": "プロフィール設定",
+      "selectAvatar": "アバターを選択",
+      "random": "ランダム生成",
+      "style": "スタイルを選択:",
+      "nickname": "ニックネーム",
+      "nicknamePlaceholder": "表示名を入力",
+      "bio": "自己紹介",
+      "bioPlaceholder": "自己紹介を入力（作品ページなどで表示されます）",
+      "save": "プロフィールを保存",
+      "saving": "保存中...",
+      "success": "プロフィールを更新しました！",
+      "error": "プロフィールの更新に失敗しました",
+      "styles": {
+        "adventurer": "冒険者",
+        "avataaars": "カートゥーン",
+        "big-ears": "ビッグイヤー",
+        "bottts": "ロボット",
+        "fun-emoji": "絵文字",
+        "lorelei": "ロレライ",
+        "micah": "ミカ",
+        "pixel-art": "ピクセル",
+        "thumbs": "サムズ"
+      }
+    },
+    "account": {
+      "title": "アカウント・セキュリティ",
+      "emailChange": "メールアドレス変更",
+      "currentEmail": "現在: {{email}}",
+      "newEmailPlaceholder": "新しいメールアドレス",
+      "change": "変更",
+      "passwordChange": "パスワード変更",
+      "newPasswordPlaceholder": "新しいパスワード",
+      "confirmPasswordPlaceholder": "新しいパスワード（確認）",
+      "changePassword": "パスワードを変更",
+      "changing": "変更中...",
+      "dangerZone": "⚠️ 危険な操作",
+      "deleteAccount": "アカウントを削除",
+      "deleteWarning": "アカウントと全てのデータが削除されます。この操作は取り消せません。\n確認のため「削除する」と入力してください。",
+      "deleteConfirmPlaceholder": "削除する",
+      "deleteConfirmButton": "削除する",
+      "cancel": "キャンセル",
+      "passwordMismatch": "新しいパスワードが一致しません",
+      "passwordLength": "パスワードは6文字以上である必要があります",
+      "passwordSuccess": "パスワードを変更しました！",
+      "passwordError": "パスワードの変更に失敗しました",
+      "emailInvalid": "正しいメールアドレスを入力してください",
+      "emailSent": "確認メールを送信しました。メールを確認してください。",
+      "emailError": "メールアドレスの変更に失敗しました",
+      "deleteConfirmError": "確認のため「削除する」と入力してください",
+      "deleteAdminError": "アカウント削除は管理者にお問い合わせください",
+      "pushSuccess": "プッシュ通知を有効にしました！",
+      "pushError": "プッシュ通知の許可が拒否されました",
+      "pushConfigError": "プッシュ通知の設定に失敗しました",
+      "pushNotSupported": "このブラウザはプッシュ通知に対応していません"
+    },
+    "notifications": {
+      "title": "通知設定",
+      "push": {
+        "title": "プッシュ通知",
+        "description": "ブラウザ通知でお知らせを受け取る",
+        "enable": "許可する",
+        "enabled": "有効"
+      },
+      "email": {
+        "title": "お知らせメール",
+        "description": "新機能やイベントのお知らせを受け取る"
+      },
+      "reminder": {
+        "title": "学習リマインダー",
+        "description": "毎日の学習を忘れないようにお知らせ",
+        "time": "リマインダー時刻"
+      }
+    },
+    "display": {
+      "title": "表示・UI設定",
+      "language": "言語 / Language",
+      "theme": "テーマ",
+      "themes": {
+        "light": "ライト",
+        "dark": "ダーク",
+        "system": "システム"
+      },
+      "fontSize": "文字サイズ",
+      "fontSizes": {
+        "small": "小",
+        "medium": "中",
+        "large": "大"
+      },
+      "animations": {
+        "title": "アニメーション",
+        "description": "画面の動きやエフェクトを表示する"
+      }
+    },
+    "learning": {
+      "title": "学習設定",
+      "sound": {
+        "title": "効果音",
+        "description": "レッスン完了時などに効果音を鳴らす"
+      },
+      "goal": {
+        "title": "1日の学習目標",
+        "description": "毎日 {{minutes}} 分を目標に学習しましょう！"
+      }
+    },
+    "reset": {
+      "button": "すべての設定をデフォルトに戻す",
+      "success": "設定をリセットしました"
+    }
   }
 }

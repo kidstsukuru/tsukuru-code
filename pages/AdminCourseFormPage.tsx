@@ -10,7 +10,6 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 
 const courseSchema = z.object({
-  id: z.string().min(1, 'コースIDは必須です').regex(/^[a-z0-9-]+$/, 'コースIDは小文字、数字、ハイフンのみ使用できます'),
   title: z.string().min(1, 'コース名は必須です'),
   description: z.string().min(1, '説明は必須です'),
   icon: z.string().optional(),
@@ -18,6 +17,7 @@ const courseSchema = z.object({
   estimated_hours: z.number().min(1, '推定時間は1以上である必要があります'),
   is_published: z.boolean(),
   order_index: z.number().min(0),
+  required_plan: z.enum(['free', 'premium', 'family']),
 });
 
 type CourseFormData = z.infer<typeof courseSchema>;
@@ -33,7 +33,6 @@ const AdminCourseFormPage: React.FC = () => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
-      id: '',
       title: '',
       description: '',
       icon: '📚',
@@ -41,6 +40,7 @@ const AdminCourseFormPage: React.FC = () => {
       estimated_hours: 5,
       is_published: false,
       order_index: 0,
+      required_plan: 'free',
     }
   });
 
@@ -56,7 +56,6 @@ const AdminCourseFormPage: React.FC = () => {
       const course = await getCourseById(id);
       if (course) {
         reset({
-          id: course.id,
           title: course.title,
           description: course.description,
           icon: course.icon || '📚',
@@ -64,6 +63,7 @@ const AdminCourseFormPage: React.FC = () => {
           estimated_hours: course.estimated_hours,
           is_published: course.is_published,
           order_index: course.order_index,
+          required_plan: course.required_plan || 'free',
         });
       }
     } catch (error) {
@@ -79,12 +79,14 @@ const AdminCourseFormPage: React.FC = () => {
     try {
       setLoading(true);
 
-      if (isEditMode) {
-        const { id, ...courseData } = data;
-        await updateCourse(id, courseData);
+      if (isEditMode && courseId) {
+        await updateCourse(courseId, data);
         toast.success('コースを更新しました');
       } else {
+        // UUIDを自動生成
+        const newCourseId = crypto.randomUUID();
         await createCourse({
+          id: newCourseId,
           ...data,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -129,22 +131,6 @@ const AdminCourseFormPage: React.FC = () => {
 
       {/* フォーム */}
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-8 space-y-6">
-        {/* コースID */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            コースID *
-          </label>
-          <Input
-            {...register('id')}
-            disabled={isEditMode}
-            placeholder="scratch-intro"
-            error={errors.id?.message}
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            小文字、数字、ハイフンのみ使用可能（例: scratch-intro）
-          </p>
-        </div>
-
         {/* コース名（日本語） */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -201,6 +187,24 @@ const AdminCourseFormPage: React.FC = () => {
             <option value="intermediate">中級</option>
             <option value="advanced">上級</option>
           </select>
+        </div>
+
+        {/* 必要プラン */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            必要なサブスクリプション *
+          </label>
+          <select
+            {...register('required_plan')}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          >
+            <option value="free">🆓 無料プラン（誰でもアクセス可能）</option>
+            <option value="premium">⭐ プレミアムプラン</option>
+            <option value="family">👨‍👩‍👧‍👦 ファミリープラン</option>
+          </select>
+          <p className="mt-1 text-sm text-gray-500">
+            このコースにアクセスするために必要な最低プランを選択してください
+          </p>
         </div>
 
         {/* 推定時間 */}

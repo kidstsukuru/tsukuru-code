@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
+import { useSidebarStore } from '../../store/sidebarStore';
 
 interface MenuItem {
   id: string;
@@ -17,7 +18,7 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const isAdmin = useAuthStore((state) => state.isAdmin);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isOpen: isMobileMenuOpen, closeSidebar } = useSidebarStore();
 
   const menuItems: MenuItem[] = [
     {
@@ -51,6 +52,16 @@ const Sidebar: React.FC = () => {
       path: '/creations/my',
     },
     {
+      id: 'profile',
+      label: 'マイプロフィール',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+      path: '/profile',
+    },
+    {
       id: 'admin',
       label: t('dashboard.sidebar.admin'),
       icon: (
@@ -66,7 +77,7 @@ const Sidebar: React.FC = () => {
 
   const handleNavigate = (path: string) => {
     navigate(path);
-    setIsMobileMenuOpen(false);
+    closeSidebar();
   };
 
   const isActive = (path: string) => {
@@ -88,22 +99,11 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* モバイル用ハンバーガーボタン */}
-      <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-20 left-4 z-50 p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-amber-500 text-white rounded-lg shadow-lg hover:bg-amber-600 active:bg-amber-700 transition-colors"
-        aria-label="メニューを開く"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-
       {/* オーバーレイ（モバイル） */}
       {isMobileMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsMobileMenuOpen(false)}
+          onClick={closeSidebar}
         />
       )}
 
@@ -119,30 +119,29 @@ const Sidebar: React.FC = () => {
       >
         <div className="flex flex-col h-full">
           {/* ロゴ・ヘッダー */}
-          <div className="p-6 border-b border-amber-200">
-            <h2 className="text-xl font-bold text-amber-600 flex items-center gap-2">
-              <span className="text-2xl">📚</span>
+          <div className="p-6 landscape:p-3 border-b border-amber-200">
+            <h2 className="text-xl landscape:text-lg font-bold text-amber-600 flex items-center gap-2">
+              <span className="text-2xl landscape:text-xl">📚</span>
               つくるコード
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm landscape:text-xs text-gray-600 mt-1">
               ようこそ、{user?.name}さん
             </p>
           </div>
 
           {/* ナビゲーションメニュー */}
-          <nav className="flex-1 overflow-y-auto py-4 px-3">
-            <ul className="space-y-2">
+          <nav className="flex-1 overflow-y-auto py-4 landscape:py-2 px-3 landscape:px-2">
+            <ul className="space-y-2 landscape:space-y-1">
               {visibleMenuItems.map((item) => (
                 <li key={item.id}>
                   <button
                     onClick={() => handleNavigate(item.path)}
                     className={`
-                      w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg
+                      w-full flex items-center gap-3 landscape:gap-2 px-4 py-3 landscape:py-2 min-h-[44px] landscape:min-h-0 rounded-lg
                       transition-all duration-200
-                      ${
-                        isActive(item.path)
-                          ? 'bg-amber-500 text-white shadow-md transform scale-105'
-                          : 'text-gray-700 hover:bg-amber-100 active:bg-amber-200'
+                      ${isActive(item.path)
+                        ? 'bg-amber-500 text-white shadow-md transform scale-105'
+                        : 'text-gray-700 hover:bg-amber-100 active:bg-amber-200'
                       }
                     `}
                   >
@@ -157,17 +156,17 @@ const Sidebar: React.FC = () => {
           </nav>
 
           {/* 進捗インジケーター */}
-          <div className="p-6 border-t border-amber-200 bg-white bg-opacity-50">
-            <div className="mb-3">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-semibold text-gray-700">
+          <div className="p-6 landscape:p-3 border-t border-amber-200 bg-white bg-opacity-50">
+            <div className="mb-3 landscape:mb-2">
+              <div className="flex justify-between items-center mb-2 landscape:mb-1">
+                <span className="text-sm landscape:text-xs font-semibold text-gray-700">
                   レベル {currentLevel}
                 </span>
                 <span className="text-xs text-gray-600">
                   {currentXP % xpForNextLevel} / {xpForNextLevel} XP
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-gray-200 rounded-full h-3 landscape:h-2 overflow-hidden">
                 <div
                   className="bg-gradient-to-r from-amber-400 to-orange-500 h-3 rounded-full transition-all duration-500 shadow-sm"
                   style={{ width: `${xpProgress}%` }}

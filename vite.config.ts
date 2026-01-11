@@ -128,8 +128,7 @@ export default defineConfig(({ mode }) => {
           ]
         },
         devOptions: {
-          enabled: true,
-          type: 'module'
+          enabled: false  // 開発環境ではPWAを無効化（CORSエラー防止）
         }
       })
     ],

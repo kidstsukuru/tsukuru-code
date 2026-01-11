@@ -123,34 +123,6 @@ const LevelLessonsPage: React.FC = () => {
     );
   }
 
-
-
-
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-stone-100">
-        <div className="text-xl text-stone-600 font-serif">冒険の準備中...</div>
-      </div>
-    );
-  }
-
-  if (!course || !level) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-stone-100">
-        <div className="text-center">
-          <p className="text-stone-600 mb-4">地図が見つかりません</p>
-          <button
-            onClick={() => navigate(`/course/${courseId}`)}
-            className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-bold shadow-md"
-          >
-            戻る
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const completedCount = lessons.filter(l => l.isCompleted).length;
   const progressPercentage = lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0;
 
@@ -193,26 +165,7 @@ const LevelLessonsPage: React.FC = () => {
 
       {/* マップエリア */}
       <div className="relative max-w-2xl mx-auto h-[800px] overflow-y-auto pb-20 scrollbar-hide">
-        <div className="relative w-full h-[1200px]"> {/* スクロール可能な高さ */}
-
-          {/* 道を描画 */}
-          {/* Note: MapPath expects absolute coordinates or we adjust the component. 
-             Let's assume MapPath takes percentages or we adjust the scaling here.
-             The previous MapPath implementation used raw coordinates for SVG path.
-             Let's adjust the props passed to MapPath to match the visual scaling.
-             Actually, let's just pass the raw points and let MapPath handle it or style it.
-             Wait, MapPath implementation took points and made a path string.
-             If I pass {x: 50, y: 10}, SVG path is "M 50 10 ...".
-             If the SVG is 100% width/height, these are small pixels.
-             I need to scale them to the container size or use percentages.
-             Let's use percentages in MapPath by setting viewBox="0 0 100 100" and preserveAspectRatio="none"?
-             No, that distorts the line thickness.
-             Better to use a fixed coordinate system or pass pixel values.
-             Let's assume the container is roughly 600px wide.
-             x: 0-100 -> 0-600px.
-             y: 0-100 -> 0-1200px (based on height).
-          */}
-
+        <div className="relative w-full h-[1200px]">
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 100" preserveAspectRatio="none">
             <path
               d={mapPoints.map((p, i) =>

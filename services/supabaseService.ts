@@ -1,19 +1,13 @@
 import { createClient, type User as SupabaseUser } from '@supabase/supabase-js';
+import { validateAvatarImage } from '../utils/fileValidation';
 
 // Supabase設定
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabaseServiceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
-// デバッグ: 環境変数の読み込み確認
-console.log('Supabase Config:', {
-  url: supabaseUrl,
-  anonKey: supabaseAnonKey ? '***' + supabaseAnonKey.slice(-4) : 'undefined',
-  serviceRoleKey: supabaseServiceRoleKey ? '***' + supabaseServiceRoleKey.slice(-4) : 'undefined',
-});
-
-// 一般ユーザー用クライアント（RLS適用）
+// Supabaseクライアント（RLS適用）
 // sessionStorageを使用してタブごとに独立したセッションを維持
+// 管理者機能もこのクライアントを使用し、RLSポリシーで権限を制御します
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
@@ -21,19 +15,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
   }
 });
-
-// 管理者用クライアント（RLSバイパス）- Service Role Keyがある場合のみ作成
-// 注意: クライアントサイドでは Service Role Key を使用しないでください（セキュリティリスク）
-export const supabaseAdmin = supabaseServiceRoleKey
-  ? createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
-  : null;
-
-console.log('Supabase initialized successfully');
 
 export type { SupabaseUser };
 
@@ -127,7 +108,6 @@ export const getUserData = async (uid: string) => {
     if (error) {
       // ユーザーデータが見つからない場合は null を返す（初回登録時など）
       if (error.code === 'PGRST116') {
-        console.log('No user data found');
         return null;
       }
       throw error;
@@ -150,6 +130,12 @@ export const onAuthStateChange = (callback: (user: SupabaseUser | null) => void)
 // アバター画像をアップロード
 export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
   try {
+    // ファイルのバリデーション（タイプとサイズ）
+    const validation = validateAvatarImage(file);
+    if (!validation.valid) {
+      throw new Error(validation.message || 'ファイルのバリデーションに失敗しました');
+    }
+
     // ファイル拡張子を取得
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
     const fileName = `${userId}-${Date.now()}.${fileExt}`;

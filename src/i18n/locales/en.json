@@ -29,6 +29,19 @@
     "admin": "Admin",
     "home": "Home"
   },
+  "entry": {
+    "subtitle": "Create, Play, and Learn Games!",
+    "creatorsWorld": "Creators World",
+    "creatorsWorldDesc": "Play games created by others! No login required to start playing now.",
+    "playNow": "Play Now",
+    "noLoginRequired": "No Login Required",
+    "learningPage": "Learning Page",
+    "learningPageDesc": "Learn programming from the basics and create your own games!",
+    "startLearning": "Start Learning",
+    "loginRequired": "Login Required",
+    "noAccount": "Don't have an account?",
+    "register": "Sign Up"
+  },
   "home": {
     "title": "Learn Coding Like a Game!",
     "subtitle": "Enter the World of Programming!",
@@ -391,5 +404,117 @@
     "updated": "Updated successfully",
     "deleted": "Deleted successfully",
     "created": "Created successfully"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": {
+      "title": "Profile Settings",
+      "selectAvatar": "Select Avatar",
+      "random": "Random Generate",
+      "style": "Select Style:",
+      "nickname": "Nickname",
+      "nicknamePlaceholder": "Enter display name",
+      "bio": "Bio",
+      "bioPlaceholder": "Enter your bio (displayed on creation pages)",
+      "save": "Save Profile",
+      "saving": "Saving...",
+      "success": "Profile updated successfully!",
+      "error": "Failed to update profile",
+      "styles": {
+        "adventurer": "Adventurer",
+        "avataaars": "Cartoon",
+        "big-ears": "Big Ears",
+        "bottts": "Robot",
+        "fun-emoji": "Emoji",
+        "lorelei": "Lorelei",
+        "micah": "Micah",
+        "pixel-art": "Pixel",
+        "thumbs": "Thumbs"
+      }
+    },
+    "account": {
+      "title": "Account & Security",
+      "emailChange": "Change Email",
+      "currentEmail": "Current: {{email}}",
+      "newEmailPlaceholder": "New Email Address",
+      "change": "Change",
+      "passwordChange": "Change Password",
+      "newPasswordPlaceholder": "New Password",
+      "confirmPasswordPlaceholder": "Confirm New Password",
+      "changePassword": "Change Password",
+      "changing": "Changing...",
+      "dangerZone": "⚠️ Danger Zone",
+      "deleteAccount": "Delete Account",
+      "deleteWarning": "Your account and all data will be deleted. This action cannot be undone.\nPlease type 'delete' to confirm.",
+      "deleteConfirmPlaceholder": "delete",
+      "deleteConfirmButton": "Delete",
+      "cancel": "Cancel",
+      "passwordMismatch": "New passwords do not match",
+      "passwordLength": "Password must be at least 6 characters",
+      "passwordSuccess": "Password changed successfully!",
+      "passwordError": "Failed to change password",
+      "emailInvalid": "Please enter a valid email address",
+      "emailSent": "Confirmation email sent. Please check your inbox.",
+      "emailError": "Failed to change email address",
+      "deleteConfirmError": "Please type 'delete' to confirm",
+      "deleteAdminError": "Please contact admin to delete account",
+      "pushSuccess": "Push notifications enabled!",
+      "pushError": "Push notification permission denied",
+      "pushConfigError": "Failed to configure push notifications",
+      "pushNotSupported": "This browser does not support push notifications"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "push": {
+        "title": "Push Notifications",
+        "description": "Receive browser notifications",
+        "enable": "Enable",
+        "enabled": "Enabled"
+      },
+      "email": {
+        "title": "Email Notifications",
+        "description": "Receive updates and event news"
+      },
+      "reminder": {
+        "title": "Learning Reminder",
+        "description": "Get reminded to study every day",
+        "time": "Reminder Time"
+      }
+    },
+    "display": {
+      "title": "Display & UI",
+      "language": "Language",
+      "theme": "Theme",
+      "themes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "fontSize": "Font Size",
+      "fontSizes": {
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large"
+      },
+      "animations": {
+        "title": "Animations",
+        "description": "Show screen transitions and effects"
+      }
+    },
+    "learning": {
+      "title": "Learning Settings",
+      "sound": {
+        "title": "Sound Effects",
+        "description": "Play sounds when completing lessons"
+      },
+      "goal": {
+        "title": "Daily Goal",
+        "description": "Aim for {{minutes}} minutes of study every day!"
+      }
+    },
+    "reset": {
+      "button": "Reset all settings to default",
+      "success": "Settings reset successfully"
+    }
   }
 }

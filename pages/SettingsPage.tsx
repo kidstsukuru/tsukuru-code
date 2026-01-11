@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
-import { useSettingsStore, FontSize, Theme } from '../store/settingsStore';
+import { useSettingsStore, FontSize, Theme, Language } from '../store/settingsStore';
 import { supabase } from '../services/supabaseService';
+import { getDiceBearUrl, AVATAR_STYLES } from '../utils/avatarHelpers';
 
 // アイコンコンポーネント
 const ChevronLeftIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -80,40 +82,30 @@ const SettingsSection: React.FC<{
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg p-6 mb-6"
+        className="bg-white rounded-2xl shadow-lg p-6 landscape:p-4 mb-6 landscape:mb-3"
     >
-        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
-            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+        <div className="flex items-center gap-3 mb-4 landscape:mb-2 pb-3 landscape:pb-2 border-b border-gray-100">
+            <div className="w-10 h-10 landscape:w-8 landscape:h-8 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
                 {icon}
             </div>
-            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+            <h2 className="text-xl landscape:text-lg font-bold text-gray-800">{title}</h2>
         </div>
         {children}
     </motion.div>
 );
 
-// DiceBear アバタースタイル
-const AVATAR_STYLES = [
-    { id: 'adventurer', name: '冒険者', emoji: '🗡️' },
-    { id: 'avataaars', name: 'カートゥーン', emoji: '😎' },
-    { id: 'big-ears', name: 'ビッグイヤー', emoji: '👂' },
-    { id: 'bottts', name: 'ロボット', emoji: '🤖' },
-    { id: 'fun-emoji', name: '絵文字', emoji: '😀' },
-    { id: 'lorelei', name: 'ロレライ', emoji: '👩' },
-    { id: 'micah', name: 'ミカ', emoji: '🧑' },
-    { id: 'pixel-art', name: 'ピクセル', emoji: '👾' },
-    { id: 'thumbs', name: 'サムズ', emoji: '👍' },
-];
-
-// DiceBear アバターURL生成
-const getDiceBearUrl = (style: string, seed: string) => {
-    return `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(seed)}&backgroundColor=fef3c7,fed7aa,fecaca,d9f99d,a5f3fc,c4b5fd`;
-};
-
 const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
     const { user, updateAvatar } = useAuthStore();
     const settings = useSettingsStore();
+    const { t, i18n } = useTranslation();
+
+    // 言語設定の反映
+    useEffect(() => {
+        if (settings.language && i18n.language !== settings.language) {
+            i18n.changeLanguage(settings.language);
+        }
+    }, [settings.language, i18n]);
 
     // プロフィール編集用の状態
     const [nickname, setNickname] = useState(user?.name || '');
@@ -183,10 +175,10 @@ const SettingsPage: React.FC = () => {
             // ストアのアバター情報を更新（ヘッダーに即座に反映）
             updateAvatar(avatarStyle, avatarSeed);
 
-            toast.success('プロフィールを更新しました！');
+            toast.success(t('settings.profile.success'));
         } catch (error: any) {
             console.error('Error updating profile:', error);
-            toast.error('プロフィールの更新に失敗しました');
+            toast.error(t('settings.profile.error'));
         } finally {
             setIsProfileLoading(false);
         }
@@ -195,12 +187,12 @@ const SettingsPage: React.FC = () => {
     // パスワード変更
     const handleChangePassword = async () => {
         if (newPassword !== confirmPassword) {
-            toast.error('新しいパスワードが一致しません');
+            toast.error(t('settings.account.passwordMismatch'));
             return;
         }
 
         if (newPassword.length < 6) {
-            toast.error('パスワードは6文字以上である必要があります');
+            toast.error(t('settings.account.passwordLength'));
             return;
         }
 
@@ -212,13 +204,13 @@ const SettingsPage: React.FC = () => {
 
             if (error) throw error;
 
-            toast.success('パスワードを変更しました！');
+            toast.success(t('settings.account.passwordSuccess'));
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } catch (error: any) {
             console.error('Error changing password:', error);
-            toast.error('パスワードの変更に失敗しました');
+            toast.error(t('settings.account.passwordError'));
         } finally {
             setIsPasswordLoading(false);
         }
@@ -227,7 +219,7 @@ const SettingsPage: React.FC = () => {
     // メールアドレス変更
     const handleChangeEmail = async () => {
         if (!newEmail || !newEmail.includes('@')) {
-            toast.error('正しいメールアドレスを入力してください');
+            toast.error(t('settings.account.emailInvalid'));
             return;
         }
 
@@ -239,11 +231,11 @@ const SettingsPage: React.FC = () => {
 
             if (error) throw error;
 
-            toast.success('確認メールを送信しました。メールを確認してください。');
+            toast.success(t('settings.account.emailSent'));
             setNewEmail('');
         } catch (error: any) {
             console.error('Error changing email:', error);
-            toast.error('メールアドレスの変更に失敗しました');
+            toast.error(t('settings.account.emailError'));
         } finally {
             setIsEmailLoading(false);
         }
@@ -251,15 +243,15 @@ const SettingsPage: React.FC = () => {
 
     // アカウント削除
     const handleDeleteAccount = async () => {
-        if (deleteConfirmText !== '削除する') {
-            toast.error('確認のため「削除する」と入力してください');
+        if (deleteConfirmText !== t('settings.account.deleteConfirmPlaceholder')) {
+            toast.error(t('settings.account.deleteConfirmError'));
             return;
         }
 
         // 注意: Supabaseでのアカウント削除は管理者権限が必要
         // ここでは削除リクエストを記録する形にするか、
         // Edge Functionを使用する必要があります
-        toast.error('アカウント削除は管理者にお問い合わせください');
+        toast.error(t('settings.account.deleteAdminError'));
         setShowDeleteConfirm(false);
         setDeleteConfirmText('');
     };
@@ -267,7 +259,7 @@ const SettingsPage: React.FC = () => {
     // プッシュ通知の許可をリクエスト
     const handleEnablePushNotifications = async () => {
         if (!('Notification' in window)) {
-            toast.error('このブラウザはプッシュ通知に対応していません');
+            toast.error(t('settings.account.pushNotSupported'));
             return;
         }
 
@@ -275,14 +267,14 @@ const SettingsPage: React.FC = () => {
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
                 settings.setPushNotificationsEnabled(true);
-                toast.success('プッシュ通知を有効にしました！');
+                toast.success(t('settings.account.pushSuccess'));
             } else {
                 settings.setPushNotificationsEnabled(false);
-                toast.error('プッシュ通知の許可が拒否されました');
+                toast.error(t('settings.account.pushError'));
             }
         } catch (error) {
             console.error('Error requesting notification permission:', error);
-            toast.error('プッシュ通知の設定に失敗しました');
+            toast.error(t('settings.account.pushConfigError'));
         }
     };
 
@@ -298,6 +290,11 @@ const SettingsPage: React.FC = () => {
         { value: 'system', label: 'システム', icon: '💻' },
     ];
 
+    const languageOptions: { value: Language; label: string; icon: string }[] = [
+        { value: 'ja', label: '日本語', icon: '🇯🇵' },
+        { value: 'en', label: 'English', icon: '🇺🇸' },
+    ];
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 pb-24 lg:pb-8">
             {/* ヘッダー */}
@@ -311,24 +308,24 @@ const SettingsPage: React.FC = () => {
                         >
                             <ChevronLeftIcon className="w-6 h-6" />
                         </button>
-                        <h1 className="text-2xl font-bold text-gray-800">⚙️ 設定</h1>
+                        <h1 className="text-2xl font-bold text-gray-800">⚙️ {t('settings.title')}</h1>
                     </div>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-6 max-w-2xl">
+            <div className="container mx-auto px-4 py-4 landscape:py-2 max-w-2xl landscape:max-w-4xl">
                 {/* プロフィール設定 */}
-                <SettingsSection icon={<UserIcon className="w-5 h-5" />} title="プロフィール設定">
+                <SettingsSection icon={<UserIcon className="w-5 h-5" />} title={t('settings.profile.title')}>
                     <div className="space-y-4">
                         {/* アバター選択 */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                アバターを選択
+                            <label className="block text-sm font-medium text-gray-700 mb-2 landscape:mb-1">
+                                {t('settings.profile.selectAvatar')}
                             </label>
-                            <div className="flex flex-col sm:flex-row items-center gap-6">
+                            <div className="flex flex-col sm:flex-row landscape:flex-row items-center gap-4 landscape:gap-3">
                                 {/* 現在のアバタープレビュー */}
-                                <div className="flex flex-col items-center gap-2">
-                                    <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 p-2 shadow-lg">
+                                <div className="flex flex-col landscape:flex-row items-center gap-2">
+                                    <div className="w-28 h-28 landscape:w-20 landscape:h-20 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 p-2 shadow-lg">
                                         <img
                                             src={getDiceBearUrl(avatarStyle, avatarSeed)}
                                             alt="アバタープレビュー"
@@ -340,14 +337,14 @@ const SettingsPage: React.FC = () => {
                                         onClick={() => setAvatarSeed(`${nickname}-${Date.now()}`)}
                                         className="text-sm text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
                                     >
-                                        🎲 ランダム生成
+                                        🎲 {t('settings.profile.random')}
                                     </button>
                                 </div>
 
                                 {/* スタイル選択グリッド */}
                                 <div className="flex-1">
-                                    <p className="text-sm text-gray-600 mb-2">スタイルを選択:</p>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <p className="text-sm text-gray-600 mb-2 landscape:mb-1">{t('settings.profile.style')}</p>
+                                    <div className="grid grid-cols-3 landscape:grid-cols-5 gap-2 landscape:gap-1">
                                         {AVATAR_STYLES.map((style) => (
                                             <button
                                                 key={style.id}
@@ -360,10 +357,10 @@ const SettingsPage: React.FC = () => {
                                             >
                                                 <img
                                                     src={getDiceBearUrl(style.id, avatarSeed)}
-                                                    alt={style.name}
-                                                    className="w-10 h-10 rounded-lg"
+                                                    alt={t(`settings.profile.styles.${style.id}`)}
+                                                    className="w-10 h-10 landscape:w-8 landscape:h-8 rounded-lg"
                                                 />
-                                                <span className="text-xs font-medium">{style.name}</span>
+                                                <span className="text-xs font-medium landscape:hidden">{t(`settings.profile.styles.${style.id}`)}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -374,28 +371,28 @@ const SettingsPage: React.FC = () => {
                         {/* ニックネーム */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                ニックネーム
+                                {t('settings.profile.nickname')}
                             </label>
                             <input
                                 type="text"
                                 value={nickname}
                                 onChange={(e) => setNickname(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                                placeholder="表示名を入力"
+                                placeholder={t('settings.profile.nicknamePlaceholder')}
                             />
                         </div>
 
                         {/* 自己紹介 */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                自己紹介
+                                {t('settings.profile.bio')}
                             </label>
                             <textarea
                                 value={bio}
                                 onChange={(e) => setBio(e.target.value)}
                                 rows={3}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
-                                placeholder="自己紹介を入力（作品ページなどで表示されます）"
+                                placeholder={t('settings.profile.bioPlaceholder')}
                             />
                         </div>
 
@@ -404,24 +401,24 @@ const SettingsPage: React.FC = () => {
                             disabled={isProfileLoading}
                             className="w-full py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50"
                         >
-                            {isProfileLoading ? '保存中...' : 'プロフィールを保存'}
+                            {isProfileLoading ? t('settings.profile.saving') : t('settings.profile.save')}
                         </button>
                     </div>
                 </SettingsSection>
 
                 {/* アカウント・セキュリティ */}
-                <SettingsSection icon={<LockIcon className="w-5 h-5" />} title="アカウント・セキュリティ">
+                <SettingsSection icon={<LockIcon className="w-5 h-5" />} title={t('settings.account.title')}>
                     <div className="space-y-6">
                         {/* メールアドレス変更 */}
                         <div>
-                            <h3 className="font-medium text-gray-800 mb-2">メールアドレス変更</h3>
-                            <p className="text-sm text-gray-500 mb-2">現在: {user?.email}</p>
+                            <h3 className="font-medium text-gray-800 mb-2">{t('settings.account.emailChange')}</h3>
+                            <p className="text-sm text-gray-500 mb-2">{t('settings.account.currentEmail', { email: user?.email })}</p>
                             <div className="flex gap-2">
                                 <input
                                     type="email"
                                     value={newEmail}
                                     onChange={(e) => setNewEmail(e.target.value)}
-                                    placeholder="新しいメールアドレス"
+                                    placeholder={t('settings.account.newEmailPlaceholder')}
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                                 />
                                 <button
@@ -429,27 +426,27 @@ const SettingsPage: React.FC = () => {
                                     disabled={isEmailLoading}
                                     className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
                                 >
-                                    {isEmailLoading ? '...' : '変更'}
+                                    {isEmailLoading ? '...' : t('settings.account.change')}
                                 </button>
                             </div>
                         </div>
 
                         {/* パスワード変更 */}
                         <div>
-                            <h3 className="font-medium text-gray-800 mb-2">パスワード変更</h3>
+                            <h3 className="font-medium text-gray-800 mb-2">{t('settings.account.passwordChange')}</h3>
                             <div className="space-y-2">
                                 <input
                                     type="password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    placeholder="新しいパスワード"
+                                    placeholder={t('settings.account.newPasswordPlaceholder')}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                                 />
                                 <input
                                     type="password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    placeholder="新しいパスワード（確認）"
+                                    placeholder={t('settings.account.confirmPasswordPlaceholder')}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                                 />
                                 <button
@@ -457,32 +454,31 @@ const SettingsPage: React.FC = () => {
                                     disabled={isPasswordLoading}
                                     className="w-full py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
                                 >
-                                    {isPasswordLoading ? '変更中...' : 'パスワードを変更'}
+                                    {isPasswordLoading ? t('settings.account.changing') : t('settings.account.changePassword')}
                                 </button>
                             </div>
                         </div>
 
                         {/* アカウント削除 */}
                         <div className="pt-4 border-t border-gray-200">
-                            <h3 className="font-medium text-red-600 mb-2">⚠️ 危険な操作</h3>
+                            <h3 className="font-medium text-red-600 mb-2">{t('settings.account.dangerZone')}</h3>
                             {!showDeleteConfirm ? (
                                 <button
                                     onClick={() => setShowDeleteConfirm(true)}
                                     className="px-4 py-2 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
                                 >
-                                    アカウントを削除
+                                    {t('settings.account.deleteAccount')}
                                 </button>
                             ) : (
                                 <div className="bg-red-50 p-4 rounded-lg">
-                                    <p className="text-sm text-red-700 mb-3">
-                                        アカウントと全てのデータが削除されます。この操作は取り消せません。
-                                        <br />確認のため「削除する」と入力してください。
+                                    <p className="text-sm text-red-700 mb-3 whitespace-pre-wrap">
+                                        {t('settings.account.deleteWarning')}
                                     </p>
                                     <input
                                         type="text"
                                         value={deleteConfirmText}
                                         onChange={(e) => setDeleteConfirmText(e.target.value)}
-                                        placeholder="削除する"
+                                        placeholder={t('settings.account.deleteConfirmPlaceholder')}
                                         className="w-full px-4 py-2 border border-red-300 rounded-lg mb-2"
                                     />
                                     <div className="flex gap-2">
@@ -493,13 +489,13 @@ const SettingsPage: React.FC = () => {
                                             }}
                                             className="flex-1 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                                         >
-                                            キャンセル
+                                            {t('settings.account.cancel')}
                                         </button>
                                         <button
                                             onClick={handleDeleteAccount}
                                             className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                                         >
-                                            削除する
+                                            {t('settings.account.deleteConfirmButton')}
                                         </button>
                                     </div>
                                 </div>
@@ -509,12 +505,12 @@ const SettingsPage: React.FC = () => {
                 </SettingsSection>
 
                 {/* 通知設定 */}
-                <SettingsSection icon={<BellIcon className="w-5 h-5" />} title="通知設定">
+                <SettingsSection icon={<BellIcon className="w-5 h-5" />} title={t('settings.notifications.title')}>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between py-3">
                             <div className="flex-1">
-                                <p className="font-medium text-gray-800">プッシュ通知</p>
-                                <p className="text-sm text-gray-500">ブラウザ通知でお知らせを受け取る</p>
+                                <p className="font-medium text-gray-800">{t('settings.notifications.push.title')}</p>
+                                <p className="text-sm text-gray-500">{t('settings.notifications.push.description')}</p>
                             </div>
                             <button
                                 onClick={handleEnablePushNotifications}
@@ -523,28 +519,28 @@ const SettingsPage: React.FC = () => {
                                     : 'bg-amber-500 text-white hover:bg-amber-600'
                                     }`}
                             >
-                                {settings.pushNotificationsEnabled ? '有効' : '許可する'}
+                                {settings.pushNotificationsEnabled ? t('settings.notifications.push.enabled') : t('settings.notifications.push.enable')}
                             </button>
                         </div>
 
                         <ToggleSwitch
                             enabled={settings.emailNotificationsEnabled}
                             onChange={settings.setEmailNotificationsEnabled}
-                            label="お知らせメール"
-                            description="新機能やイベントのお知らせを受け取る"
+                            label={t('settings.notifications.email.title')}
+                            description={t('settings.notifications.email.description')}
                         />
 
                         <ToggleSwitch
                             enabled={settings.learningReminderEnabled}
                             onChange={settings.setLearningReminderEnabled}
-                            label="学習リマインダー"
-                            description="毎日の学習を忘れないようにお知らせ"
+                            label={t('settings.notifications.reminder.title')}
+                            description={t('settings.notifications.reminder.description')}
                         />
 
                         {settings.learningReminderEnabled && (
                             <div className="pl-4 border-l-2 border-amber-200">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    リマインダー時刻
+                                    {t('settings.notifications.reminder.time')}
                                 </label>
                                 <input
                                     type="time"
@@ -558,12 +554,34 @@ const SettingsPage: React.FC = () => {
                 </SettingsSection>
 
                 {/* 表示・UI設定 */}
-                <SettingsSection icon={<PaintBrushIcon className="w-5 h-5" />} title="表示・UI設定">
+                <SettingsSection icon={<PaintBrushIcon className="w-5 h-5" />} title={t('settings.display.title')}>
                     <div className="space-y-6">
+                        {/* 言語設定 */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                {t('settings.display.language')}
+                            </label>
+                            <div className="grid grid-cols-2 landscape:inline-flex landscape:gap-2 gap-3">
+                                {languageOptions.map((option) => (
+                                    <button
+                                        key={option.value}
+                                        onClick={() => settings.setLanguage(option.value)}
+                                        className={`p-3 landscape:px-4 landscape:py-2 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${settings.language === option.value
+                                            ? 'border-amber-500 bg-amber-50 text-amber-900'
+                                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                                            }`}
+                                    >
+                                        <span className="text-xl">{option.icon}</span>
+                                        <span className="font-medium">{option.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* テーマ */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-3">
-                                テーマ
+                                {t('settings.display.theme')}
                             </label>
                             <div className="grid grid-cols-3 gap-3">
                                 {themeOptions.map((option) => (
@@ -576,7 +594,7 @@ const SettingsPage: React.FC = () => {
                                             }`}
                                     >
                                         <span className="text-2xl block mb-1">{option.icon}</span>
-                                        <span className="text-sm font-medium">{option.label}</span>
+                                        <span className="text-sm font-medium">{t(`settings.display.themes.${option.value}`)}</span>
                                     </button>
                                 ))}
                             </div>
@@ -585,7 +603,7 @@ const SettingsPage: React.FC = () => {
                         {/* 文字サイズ */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-3">
-                                文字サイズ
+                                {t('settings.display.fontSize')}
                             </label>
                             <div className="flex gap-3">
                                 {fontSizeOptions.map((option) => (
@@ -600,7 +618,7 @@ const SettingsPage: React.FC = () => {
                                             fontSize: option.value === 'small' ? '14px' : option.value === 'large' ? '18px' : '16px',
                                         }}
                                     >
-                                        {option.label}
+                                        {t(`settings.display.fontSizes.${option.value}`)}
                                     </button>
                                 ))}
                             </div>
@@ -609,26 +627,26 @@ const SettingsPage: React.FC = () => {
                         <ToggleSwitch
                             enabled={settings.animationsEnabled}
                             onChange={settings.setAnimationsEnabled}
-                            label="アニメーション"
-                            description="画面の動きやエフェクトを表示する"
+                            label={t('settings.display.animations.title')}
+                            description={t('settings.display.animations.description')}
                         />
                     </div>
                 </SettingsSection>
 
                 {/* 学習設定 */}
-                <SettingsSection icon={<AcademicCapIcon className="w-5 h-5" />} title="学習設定">
+                <SettingsSection icon={<AcademicCapIcon className="w-5 h-5" />} title={t('settings.learning.title')}>
                     <div className="space-y-4">
                         <ToggleSwitch
                             enabled={settings.soundEnabled}
                             onChange={settings.setSoundEnabled}
-                            label="効果音"
-                            description="レッスン完了時などに効果音を鳴らす"
+                            label={t('settings.learning.sound.title')}
+                            description={t('settings.learning.sound.description')}
                         />
 
                         {/* 学習目標 */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                1日の学習目標
+                                {t('settings.learning.goal.title')}
                             </label>
                             <div className="flex items-center gap-4">
                                 <input
@@ -645,7 +663,7 @@ const SettingsPage: React.FC = () => {
                                 </span>
                             </div>
                             <p className="text-sm text-gray-500 mt-1">
-                                毎日 {settings.dailyGoalMinutes} 分を目標に学習しましょう！
+                                {t('settings.learning.goal.description', { minutes: settings.dailyGoalMinutes })}
                             </p>
                         </div>
                     </div>
@@ -656,11 +674,11 @@ const SettingsPage: React.FC = () => {
                     <button
                         onClick={() => {
                             settings.resetSettings();
-                            toast.success('設定をリセットしました');
+                            toast.success(t('settings.reset.success'));
                         }}
                         className="text-gray-500 hover:text-gray-700 text-sm underline"
                     >
-                        すべての設定をデフォルトに戻す
+                        {t('settings.reset.button')}
                     </button>
                 </div>
             </div>

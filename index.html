@@ -4,6 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https: blob:;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://*.supabase.co https://api.dicebear.com wss://*.supabase.co;
+      frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://scratch.mit.edu https://turbowarp.org https://codepen.io https://replit.com https://vimeo.com https://*.github.io https://*.vercel.app https://*.netlify.app;
+      media-src 'self' https:;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      frame-ancestors 'none';
+      upgrade-insecure-requests;
+    ">
+
     <!-- SEO & Description -->
     <meta name="description" content="ゲームみたいに楽しく学ぶ、子供向けプログラミング学習プラットフォーム" />
     <meta name="keywords" content="プログラミング, 子供, 学習, Scratch, ゲーム, 教育" />

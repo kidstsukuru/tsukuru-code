@@ -10,7 +10,6 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 
 const levelSchema = z.object({
-  id: z.string().min(1, 'レベルIDは必須です').regex(/^[a-z0-9-]+$/, 'レベルIDは小文字、数字、ハイフンのみ使用できます'),
   title: z.string().min(1, 'レベル名は必須です'),
   description: z.string().optional(),
   level_number: z.number().min(1, 'レベル番号は1以上である必要があります'),
@@ -32,7 +31,6 @@ const AdminLevelFormPage: React.FC = () => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm<LevelFormData>({
     resolver: zodResolver(levelSchema),
     defaultValues: {
-      id: '',
       title: '',
       description: '',
       level_number: 1,
@@ -54,7 +52,6 @@ const AdminLevelFormPage: React.FC = () => {
           const level = await getLevelById(levelId);
           if (level) {
             reset({
-              id: level.id,
               title: level.title,
               description: level.description || '',
               level_number: level.level_number,
@@ -81,15 +78,16 @@ const AdminLevelFormPage: React.FC = () => {
     try {
       setLoading(true);
 
-      if (isEditMode) {
-        const { id, ...levelData } = data;
-        await updateLevel(id, {
-          ...levelData,
+      if (isEditMode && levelId) {
+        await updateLevel(levelId, {
+          ...data,
           course_id: courseId,
         });
         toast.success('レベルを更新しました');
       } else {
+        const newLevelId = crypto.randomUUID();
         await createLevel({
+          id: newLevelId,
           ...data,
           course_id: courseId,
           created_at: new Date().toISOString(),
@@ -141,22 +139,6 @@ const AdminLevelFormPage: React.FC = () => {
 
       {/* フォーム */}
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-8 space-y-6">
-        {/* レベルID */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            レベルID *
-          </label>
-          <Input
-            {...register('id')}
-            disabled={isEditMode}
-            placeholder={`${courseId}-level-2`}
-            error={errors.id?.message}
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            小文字、数字、ハイフンのみ使用可能（例: {courseId}-level-2）
-          </p>
-        </div>
-
         {/* レベル名 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">

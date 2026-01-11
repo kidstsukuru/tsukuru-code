@@ -12,6 +12,7 @@ import { useAuthStore } from './store/authStore';
 import './src/i18n/config'; // i18nの初期化
 
 // 遅延ロード: 公開ページ（初期ロード時に必要な可能性が高い）
+const EntryPage = lazy(() => import('./pages/EntryPage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
@@ -33,11 +34,13 @@ const MyCreationsPage = lazy(() => import('./pages/MyCreationsPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
 
-// 遅延ロード: 設定
+// 遅延ロード: 設定・プロフィール
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 // 遅延ロード: 管理画面（管理者のみアクセス）
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
+const AdminCourseManagerPage = lazy(() => import('./pages/AdminCourseManagerPage'));
 const AdminCoursesPage = lazy(() => import('./pages/AdminCoursesPage'));
 const AdminCourseFormPage = lazy(() => import('./pages/AdminCourseFormPage'));
 const AdminLessonsPage = lazy(() => import('./pages/AdminLessonsPage'));
@@ -112,8 +115,13 @@ const App: React.FC = () => {
         />
         <Suspense fallback={<LoadingSpinner fullScreen />}>
           <Routes>
-            {/* 公開ルート */}
+            {/* エントリーページ（ルート） */}
             <Route path="/" element={
+              <EntryPage />
+            } />
+
+            {/* ホームページ */}
+            <Route path="/home" element={
               <div className="bg-amber-50 min-h-screen text-gray-800">
                 <Header />
                 <main id="main-content">
@@ -221,16 +229,32 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
 
-            <Route path="/creations" element={
+            {/* プロフィールページ */}
+            <Route path="/profile" element={
               <ProtectedRoute>
-                <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
-                  <Header />
-                  <main id="main-content">
-                    <CreationsPage />
-                  </main>
-                  <BottomNav />
-                </div>
+                <ProfilePage />
               </ProtectedRoute>
+            } />
+
+            {/* クリエイターズワールド（誰でもアクセス可能） */}
+            <Route path="/creations" element={
+              <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
+                <Header />
+                <main id="main-content">
+                  <CreationsPage />
+                </main>
+                <BottomNav />
+              </div>
+            } />
+
+            <Route path="/creations/:id" element={
+              <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
+                <Header />
+                <main id="main-content">
+                  <CreationDetailPage />
+                </main>
+                <BottomNav />
+              </div>
             } />
 
             <Route path="/creations/new" element={
@@ -257,17 +281,7 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
 
-            <Route path="/creations/:id" element={
-              <ProtectedRoute>
-                <div className="bg-slate-900 min-h-screen text-gray-800 pb-20 lg:pb-0">
-                  <Header />
-                  <main id="main-content">
-                    <CreationDetailPage />
-                  </main>
-                  <BottomNav />
-                </div>
-              </ProtectedRoute>
-            } />
+
 
             <Route path="/creations/:id/edit" element={
               <ProtectedRoute>
@@ -293,7 +307,7 @@ const App: React.FC = () => {
             <Route path="/admin/courses" element={
               <AdminRoute>
                 <AdminLayout>
-                  <AdminCoursesPage />
+                  <AdminCourseManagerPage />
                 </AdminLayout>
               </AdminRoute>
             } />

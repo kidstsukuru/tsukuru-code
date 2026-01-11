@@ -118,10 +118,10 @@ const CoursePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-8 px-4 landscape:py-2 landscape:px-3">
+      <div className="max-w-4xl mx-auto landscape:max-w-full">
         {/* ヘッダー */}
-        <div className="mb-8">
+        <div className="mb-8 landscape:mb-3">
           <button
             onClick={() => navigate('/dashboard')}
             className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
@@ -132,19 +132,19 @@ const CoursePage: React.FC = () => {
             ダッシュボードに戻る
           </button>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <div className="flex items-center space-x-4 mb-4">
-              <span className="text-6xl">{course.icon || '📚'}</span>
+          <div className="bg-white rounded-2xl shadow-xl p-8 landscape:p-4 mb-8 landscape:mb-3">
+            <div className="flex items-center space-x-4 landscape:space-x-2 mb-4 landscape:mb-2">
+              <span className="text-6xl landscape:text-3xl">{course.icon || '📚'}</span>
               <div>
-                <h1 className="text-4xl font-bold text-gray-900">{course.title}</h1>
-                <p className="text-gray-600 mt-2">{course.description}</p>
+                <h1 className="text-4xl landscape:text-xl font-bold text-gray-900">{course.title}</h1>
+                <p className="text-gray-600 mt-2 landscape:mt-1 landscape:text-sm">{course.description}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* レベル一覧 */}
-        <div className="space-y-6">
+        <div className="space-y-6 landscape:space-y-2 landscape:grid landscape:grid-cols-2 landscape:gap-3">
           {levels.map((level, index) => (
             <motion.div
               key={level.id}
@@ -172,12 +172,12 @@ const CoursePage: React.FC = () => {
                 </div>
               )}
 
-              <div className="p-8">
+              <div className="p-8 landscape:p-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-4 flex-1">
+                  <div className="flex items-center space-x-4 landscape:space-x-2 flex-1">
                     {/* レベル番号バッジ */}
                     <div className={`
-                      flex items-center justify-center w-16 h-16 rounded-full font-bold text-2xl shadow-lg
+                      flex items-center justify-center w-16 h-16 landscape:w-10 landscape:h-10 rounded-full font-bold text-2xl landscape:text-lg shadow-lg
                       ${level.isCompleted
                         ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white'
                         : 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
@@ -187,23 +187,23 @@ const CoursePage: React.FC = () => {
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{level.title}</h3>
+                      <h3 className="text-2xl landscape:text-lg font-bold text-gray-900 mb-2 landscape:mb-1">{level.title}</h3>
                       {level.description && (
-                        <p className="text-gray-600 mb-3">{level.description}</p>
+                        <p className="text-gray-600 mb-3 landscape:mb-1 landscape:text-sm landscape:line-clamp-1">{level.description}</p>
                       )}
 
                       {/* 進捗バー */}
                       {level.totalLessonsCount > 0 && (
-                        <div className="mb-3">
+                        <div className="mb-3 landscape:mb-1">
                           <div className="flex justify-between items-center mb-1">
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm landscape:text-xs text-gray-600">
                               進捗: {level.completedLessonsCount} / {level.totalLessonsCount} レッスン
                             </span>
-                            <span className="text-sm font-semibold text-amber-600">
+                            <span className="text-sm landscape:text-xs font-semibold text-amber-600">
                               {Math.round((level.completedLessonsCount / level.totalLessonsCount) * 100)}%
                             </span>
                           </div>
-                          <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="w-full h-3 landscape:h-2 bg-gray-200 rounded-full overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${(level.completedLessonsCount / level.totalLessonsCount) * 100}%` }}

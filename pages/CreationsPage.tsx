@@ -81,15 +81,15 @@ const CreationsPage: React.FC = () => {
     <div className="relative min-h-screen text-gray-200 overflow-hidden">
       <GalaxyBackground />
 
-      <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12 relative z-10">
+      <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12 landscape:py-2 landscape:px-3 relative z-10">
 
         {/* Header Section */}
-        <div className="flex flex-col items-center justify-center mb-12 text-center">
+        <div className="flex flex-col items-center justify-center mb-12 landscape:mb-4 text-center">
           <motion.h1
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, type: "spring" }}
-            className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-4"
+            className="text-4xl sm:text-5xl md:text-7xl landscape:text-2xl font-black tracking-tight mb-4 landscape:mb-2"
             style={{
               textShadow: '0 0 20px rgba(6, 182, 212, 0.8), 0 0 40px rgba(217, 70, 239, 0.6)',
               background: 'linear-gradient(to right, #22d3ee, #e879f9)',
@@ -103,14 +103,14 @@ const CreationsPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-cyan-200 text-lg sm:text-xl font-medium tracking-widest uppercase"
+            className="text-cyan-200 text-lg sm:text-xl landscape:text-sm font-medium tracking-widest uppercase"
           >
             {t('creations.description')}
           </motion.p>
         </div>
 
         {/* Featured Section (Holographic Display) */}
-        <div className="mb-16">
+        <div className="mb-16 landscape:mb-4 landscape:hidden">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
@@ -181,7 +181,7 @@ const CreationsPage: React.FC = () => {
         </div>
 
         {/* Control Panel (HUD Style) */}
-        <div className="sticky top-4 z-30 mb-8 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
+        <div className="sticky top-4 z-30 mb-8 landscape:mb-3 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 landscape:p-2 shadow-2xl">
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
 
             {/* Search HUD */}
@@ -212,13 +212,15 @@ const CreationsPage: React.FC = () => {
                 <option value="created_at">{t('creations.sortByNew')}</option>
               </select>
 
-              <button
-                onClick={() => navigate('/creations/new')}
-                className="flex items-center gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all transform hover:scale-105 hover:shadow-[0_0_15px_rgba(217,70,239,0.5)] whitespace-nowrap"
-              >
-                <PlusIcon className="w-5 h-5" />
-                <span>{t('creations.createNew')}</span>
-              </button>
+              {user && (
+                <button
+                  onClick={() => navigate('/creations/new')}
+                  className="flex items-center gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all transform hover:scale-105 hover:shadow-[0_0_15px_rgba(217,70,239,0.5)] whitespace-nowrap"
+                >
+                  <PlusIcon className="w-5 h-5" />
+                  <span>{t('creations.createNew')}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -229,7 +231,7 @@ const CreationsPage: React.FC = () => {
             <div className="text-cyan-500 animate-pulse text-xl font-mono">{t('creations.loadingCreations')}</div>
           </div>
         ) : filteredCreations.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 landscape:grid-cols-4 gap-6 landscape:gap-2">
             {filteredCreations.map((creation, index) => (
               <motion.div
                 key={creation.id}

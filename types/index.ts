@@ -61,6 +61,7 @@ export interface Course {
   estimated_hours: number;
   is_published: boolean;
   order_index: number;
+  required_plan: 'free' | 'premium' | 'family';  // 必要なサブスクリプションプラン
   created_at: string;
   updated_at: string;
 }

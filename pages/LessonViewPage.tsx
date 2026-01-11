@@ -10,6 +10,7 @@ import { Lesson as LessonType, Course as CourseType, Level } from '../types/inde
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 import LevelClearModal from '../components/modals/LevelClearModal';
+import { createSafeHTML } from '../utils/sanitizeHelpers';
 
 type Checkpoint = {
     text: string;
@@ -212,27 +213,27 @@ const LessonViewPage: React.FC = () => {
                 }}
             />
 
-            <div className="container mx-auto px-6 py-12 relative z-10">
-                <div className="flex items-center mb-8">
+            <div className="container mx-auto px-6 py-12 landscape:py-3 landscape:px-3 relative z-10">
+                <div className="flex items-center mb-8 landscape:mb-3">
                     <button
                         onClick={() => navigate(`/course/${courseId}/level/${levelId}`)}
-                        className="flex items-center gap-2 text-amber-900 hover:text-amber-700 font-bold bg-white/50 px-4 py-2 rounded-full transition-all hover:bg-white/80"
+                        className="flex items-center gap-2 text-amber-900 hover:text-amber-700 font-bold bg-white/50 px-4 py-2 landscape:px-3 landscape:py-1 rounded-full transition-all hover:bg-white/80 landscape:text-sm"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 landscape:w-4 landscape:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                         <span>冒険の地図に戻る</span>
                     </button>
                 </div>
 
-                <div className="mb-6 text-center">
-                    <span className="inline-block px-4 py-1 bg-amber-800 text-amber-100 rounded-full text-sm font-bold mb-2 tracking-wider">QUEST</span>
-                    <h1 className="text-3xl sm:text-5xl font-bold mb-2 text-amber-900 drop-shadow-sm">{currentLesson.title}</h1>
-                    <p className="text-amber-800 font-medium">{course.title} - {level.title}</p>
+                <div className="mb-6 landscape:mb-2 text-center landscape:text-left">
+                    <span className="inline-block px-4 py-1 landscape:px-2 bg-amber-800 text-amber-100 rounded-full text-sm landscape:text-xs font-bold mb-2 landscape:mb-1 tracking-wider">QUEST</span>
+                    <h1 className="text-3xl sm:text-5xl landscape:text-xl font-bold mb-2 landscape:mb-1 text-amber-900 drop-shadow-sm">{currentLesson.title}</h1>
+                    <p className="text-amber-800 font-medium landscape:text-sm">{course.title} - {level.title}</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 landscape:grid-cols-2 gap-8 landscape:gap-3">
+                    <div className="lg:col-span-2 landscape:col-span-1 space-y-8 landscape:space-y-3">
                         {/* 動画カード */}
                         <div className="bg-[#fff9e6] rounded-xl shadow-xl border-4 border-[#d4c5a2] overflow-hidden relative">
                             <div className="absolute top-0 left-0 w-full h-2 bg-[#d4c5a2]"></div>
@@ -248,41 +249,41 @@ const LessonViewPage: React.FC = () => {
                         </div>
 
                         {/* 説明カード */}
-                        <div className="bg-[#fff9e6] p-8 rounded-xl shadow-lg border-2 border-[#d4c5a2] relative">
-                            <div className="absolute -top-4 -left-4 w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-white text-2xl shadow-md">
+                        <div className="bg-[#fff9e6] p-8 landscape:p-4 rounded-xl shadow-lg border-2 border-[#d4c5a2] relative landscape:hidden">
+                            <div className="absolute -top-4 -left-4 w-12 h-12 landscape:w-8 landscape:h-8 bg-amber-600 rounded-full flex items-center justify-center text-white text-2xl landscape:text-lg shadow-md">
                                 📜
                             </div>
-                            <h2 className="text-2xl font-bold mb-4 text-amber-900 border-b-2 border-amber-200 pb-2">
+                            <h2 className="text-2xl landscape:text-lg font-bold mb-4 landscape:mb-2 text-amber-900 border-b-2 border-amber-200 pb-2">
                                 クエスト情報
                             </h2>
                             <div
                                 className="prose prose-amber max-w-none text-amber-900"
-                                dangerouslySetInnerHTML={{ __html: currentLesson.description }}
+                                dangerouslySetInnerHTML={createSafeHTML(currentLesson.description)}
                             />
                         </div>
                     </div>
 
-                    <div className="lg:col-span-1 space-y-6">
+                    <div className="lg:col-span-1 space-y-6 landscape:space-y-2">
                         {/* クエスト目標（チェックポイント） */}
-                        <div className="bg-[#fff9e6] p-6 rounded-xl shadow-lg border-4 border-amber-700/20 relative overflow-hidden">
+                        <div className="bg-[#fff9e6] p-6 landscape:p-3 rounded-xl shadow-lg border-4 border-amber-700/20 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-10">
                                 <svg className="w-32 h-32 text-amber-900" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
 
-                            <h2 className="text-xl font-bold mb-6 flex items-center gap-x-3 text-amber-900">
-                                <span className="text-2xl">⚔️</span>
+                            <h2 className="text-xl landscape:text-base font-bold mb-6 landscape:mb-2 flex items-center gap-x-3 landscape:gap-x-2 text-amber-900">
+                                <span className="text-2xl landscape:text-lg">⚔️</span>
                                 <span>クエスト目標</span>
                             </h2>
 
-                            <div className="space-y-4 relative z-10">
+                            <div className="space-y-4 landscape:space-y-2 relative z-10">
                                 {checkpoints.map((cp, index) => (
                                     <label
                                         key={index}
                                         htmlFor={`cp-${index}`}
                                         className={`
-                                            flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 group
+                                            flex items-center p-4 landscape:p-2 rounded-lg border-2 cursor-pointer transition-all duration-300 group
                                             ${cp.checked
                                                 ? 'bg-green-100/50 border-green-600/30'
                                                 : 'bg-white border-amber-200 hover:border-amber-400 hover:bg-amber-50'
@@ -308,7 +309,7 @@ const LessonViewPage: React.FC = () => {
                                             </div>
                                         </div>
                                         <span className={`
-                                            ml-4 font-bold text-lg transition-colors
+                                            ml-4 landscape:ml-2 font-bold text-lg landscape:text-sm transition-colors
                                             ${cp.checked ? 'text-green-800 line-through opacity-70' : 'text-amber-900'}
                                         `}>
                                             {cp.text}
@@ -323,13 +324,13 @@ const LessonViewPage: React.FC = () => {
                             <motion.div
                                 initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="bg-gradient-to-br from-green-100 to-emerald-200 p-6 rounded-xl shadow-xl border-4 border-green-400 text-center"
+                                className="bg-gradient-to-br from-green-100 to-emerald-200 p-6 landscape:p-3 rounded-xl shadow-xl border-4 border-green-400 text-center"
                             >
-                                <h2 className="text-xl font-bold mb-2 text-green-900">目標達成！</h2>
-                                <p className="text-green-800 mb-4 text-sm">クエストを完了して報酬を受け取ろう</p>
+                                <h2 className="text-xl landscape:text-base font-bold mb-2 landscape:mb-1 text-green-900">目標達成！</h2>
+                                <p className="text-green-800 mb-4 landscape:mb-2 text-sm landscape:text-xs">クエストを完了して報酬を受け取ろう</p>
                                 <button
                                     onClick={handleCompleteLesson}
-                                    className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-4 landscape:py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all flex items-center justify-center gap-2 landscape:text-sm"
                                 >
                                     <span className="text-xl">🎁</span>
                                     クエスト完了！

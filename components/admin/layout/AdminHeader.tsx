@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../../store/authStore';
-import LanguageSwitcher from '../../common/LanguageSwitcher';
 
 const UserIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -55,9 +54,6 @@ const AdminHeader: React.FC = () => {
 
         {/* 右側エリア */}
         <div className="flex items-center space-x-4">
-          {/* 言語切り替え */}
-          <LanguageSwitcher />
-
           {/* ユーザーメニュー */}
           {user && (
             <div className="relative" ref={menuRef}>

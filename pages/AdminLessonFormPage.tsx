@@ -9,9 +9,9 @@ import { Course } from '../types/index';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import RichTextEditor from '../components/common/RichTextEditor';
+import { createSafeHTML } from '../utils/sanitizeHelpers';
 
 const lessonSchema = z.object({
-  id: z.string().min(1, 'レッスンIDは必須です').regex(/^[a-z0-9-]+$/, 'レッスンIDは小文字、数字、ハイフンのみ使用できます'),
   title: z.string().min(1, 'レッスン名は必須です'),
   description: z.string().min(1, '説明は必須です'),
   youtube_url: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
@@ -28,9 +28,6 @@ const AdminLessonFormPage: React.FC = () => {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const isEditMode = !!(lessonId && lessonId !== 'new');
 
-  // デバッグ用
-  console.log('AdminLessonFormPage:', { courseId, lessonId, isEditMode });
-
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [course, setCourse] = useState<Course | null>(null);
@@ -39,7 +36,6 @@ const AdminLessonFormPage: React.FC = () => {
   const { register, handleSubmit, formState: { errors }, reset, control, watch } = useForm<LessonFormData>({
     resolver: zodResolver(lessonSchema),
     defaultValues: {
-      id: '',
       title: '',
       description: '',
       youtube_url: '',
@@ -63,7 +59,6 @@ const AdminLessonFormPage: React.FC = () => {
           const lesson = await getLessonById(lessonId);
           if (lesson) {
             reset({
-              id: lesson.id,
               title: lesson.title,
               description: lesson.description,
               youtube_url: lesson.youtube_url || '',
@@ -92,15 +87,16 @@ const AdminLessonFormPage: React.FC = () => {
     try {
       setLoading(true);
 
-      if (isEditMode) {
-        const { id, ...lessonData } = data;
-        await updateLesson(id, {
-          ...lessonData,
+      if (isEditMode && lessonId) {
+        await updateLesson(lessonId, {
+          ...data,
           course_id: courseId,
         });
         toast.success('レッスンを更新しました');
       } else {
+        const newLessonId = crypto.randomUUID();
         await createLesson({
+          id: newLessonId,
           ...data,
           course_id: courseId,
           created_at: new Date().toISOString(),
@@ -152,22 +148,6 @@ const AdminLessonFormPage: React.FC = () => {
 
       {/* フォーム */}
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-8 space-y-6">
-        {/* レッスンID */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            レッスンID *
-          </label>
-          <Input
-            {...register('id')}
-            disabled={isEditMode}
-            placeholder={`${courseId}-lesson-1`}
-            error={errors.id?.message}
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            小文字、数字、ハイフンのみ使用可能（例: {courseId}-lesson-1）
-          </p>
-        </div>
-
         {/* レッスン名（日本語） */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -190,22 +170,20 @@ const AdminLessonFormPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPreview(false)}
-                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                  !showPreview
+                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${!showPreview
                     ? 'bg-amber-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 編集
               </button>
               <button
                 type="button"
                 onClick={() => setShowPreview(true)}
-                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                  showPreview
+                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${showPreview
                     ? 'bg-amber-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 プレビュー
               </button>
@@ -228,7 +206,7 @@ const AdminLessonFormPage: React.FC = () => {
             <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 min-h-[200px]">
               <div
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: watch('description') || '<p class="text-gray-400">プレビューする内容がありません</p>' }}
+                dangerouslySetInnerHTML={createSafeHTML(watch('description') || '<p class="text-gray-400">プレビューする内容がありません</p>')}
               />
             </div>
           )}

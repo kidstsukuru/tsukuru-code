@@ -27,7 +27,16 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // 開発環境でのみ詳細なエラーをコンソールに出力
+    if (import.meta.env.DEV) {
+      console.error('ErrorBoundary caught an error:', error, errorInfo);
+    }
+
+    // TODO: 本番環境ではエラー監視サービス（Sentry等）に送信
+    // if (import.meta.env.PROD) {
+    //   reportErrorToService(error, errorInfo);
+    // }
+
     this.setState({
       error,
       errorInfo,
