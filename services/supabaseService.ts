@@ -22,6 +22,7 @@ export type { SupabaseUser };
 export const registerUser = async (name: string, email: string, password: string) => {
   try {
     // Supabaseでユーザー登録
+    // データベーストリガーが自動的にpublic.usersテーブルにレコードを作成します
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -38,24 +39,8 @@ export const registerUser = async (name: string, email: string, password: string
       throw new Error('ユーザーの作成に失敗しました');
     }
 
-    // users テーブルにユーザーデータを保存
-    const { error: insertError } = await supabase
-      .from('users')
-      .insert({
-        id: data.user.id,
-        name,
-        email,
-        login_streak: 1,
-        xp: 0,
-        level: 1,
-        role: 'student',
-        created_at: new Date().toISOString(),
-      });
-
-    if (insertError) {
-      console.error('Error saving user data:', insertError);
-      // ユーザーは作成されたが、追加データの保存に失敗した場合でも続行
-    }
+    // トリガーによるusersテーブルへの挿入を待つ（少し待機）
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     return data.user;
   } catch (error: any) {
