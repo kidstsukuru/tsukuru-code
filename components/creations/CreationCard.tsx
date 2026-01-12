@@ -126,9 +126,17 @@ const CreationCard: React.FC<CreationCardProps> = ({ creation }) => {
             {creation.title}
           </h3>
           <div className="flex items-center gap-2 mt-1">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-[10px] text-white font-bold">
-              {creation.creator?.name?.charAt(0) || '?'}
-            </div>
+            {creation.creator?.avatar_style && creation.creator?.avatar_seed ? (
+              <img
+                src={`https://api.dicebear.com/7.x/${creation.creator.avatar_style}/svg?seed=${creation.creator.avatar_seed}`}
+                alt={creation.creator.name}
+                className="w-5 h-5 rounded-full border border-cyan-500/50"
+              />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-[10px] text-white font-bold">
+                {creation.creator?.name?.charAt(0) || '?'}
+              </div>
+            )}
             <p className="text-xs text-gray-300 truncate">
               {creation.creator?.name || '匿名クリエイター'}
             </p>

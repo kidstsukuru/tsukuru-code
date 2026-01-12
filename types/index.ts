@@ -164,6 +164,8 @@ export interface Creation {
   creator?: {
     id: string;
     name: string;
+    avatar_style?: string;
+    avatar_seed?: string;
   };
   is_liked?: boolean;  // 現在のユーザーがいいねしているか
 }

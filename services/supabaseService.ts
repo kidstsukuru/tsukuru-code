@@ -670,7 +670,7 @@ export const getCreations = async (
       .from('creations')
       .select(`
         *,
-        creator:users!creations_user_id_fkey(id, name)
+        creator:users!creations_user_id_fkey(id, name, avatar_style, avatar_seed)
       `)
       .eq('is_published', true)
       .order(sortBy, { ascending: false })
@@ -715,7 +715,7 @@ export const getCreationById = async (creationId: string, userId?: string) => {
       .from('creations')
       .select(`
         *,
-        creator:users!creations_user_id_fkey(id, name)
+        creator:users!creations_user_id_fkey(id, name, avatar_style, avatar_seed)
       `)
       .eq('id', creationId)
       .single();
@@ -943,7 +943,7 @@ export const searchCreations = async (searchQuery: string, limit = 20) => {
       .from('creations')
       .select(`
         *,
-        creator:users!creations_user_id_fkey(id, name)
+        creator:users!creations_user_id_fkey(id, name, avatar_style, avatar_seed)
       `)
       .eq('is_published', true)
       .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)

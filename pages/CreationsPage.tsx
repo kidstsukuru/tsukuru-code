@@ -149,9 +149,17 @@ const CreationsPage: React.FC = () => {
 
                   <div className="flex items-center gap-4 mb-6">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-white">
-                        {featuredCreation.creator?.name?.charAt(0) || '?'}
-                      </div>
+                      {featuredCreation.creator?.avatar_style && featuredCreation.creator?.avatar_seed ? (
+                        <img
+                          src={`https://api.dicebear.com/7.x/${featuredCreation.creator.avatar_style}/svg?seed=${featuredCreation.creator.avatar_seed}`}
+                          alt={featuredCreation.creator.name}
+                          className="w-8 h-8 rounded-full border-2 border-cyan-500"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-white">
+                          {featuredCreation.creator?.name?.charAt(0) || '?'}
+                        </div>
+                      )}
                       <span className="text-cyan-100 font-medium">{featuredCreation.creator?.name || t('creations.creator')}</span>
                     </div>
                     <div className="h-4 w-px bg-white/20" />
