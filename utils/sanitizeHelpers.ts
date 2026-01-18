@@ -51,17 +51,6 @@ export const sanitizeHTML = (dirty: string): string => {
 };
 
 /**
- * シンプルなテキストコンテンツのみを許可するサニタイザー
- * （HTMLタグを完全に除去）
- *
- * @param dirty - サニタイズする前の文字列
- * @returns プレーンテキスト
- */
-export const sanitizeText = (dirty: string): string => {
-  return DOMPurify.sanitize(dirty, { ALLOWED_TAGS: [] });
-};
-
-/**
  * React コンポーネントで安全に使用するための dangerouslySetInnerHTML オブジェクトを生成
  *
  * @param html - HTMLコンテンツ

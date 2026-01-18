@@ -1,5 +1,5 @@
 import { createClient, type User as SupabaseUser } from '@supabase/supabase-js';
-import { validateAvatarImage } from '../utils/fileValidation';
+import { validateAvatarImage, validateThumbnailImage } from '../utils/fileValidation';
 
 // Supabase設定
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -148,6 +148,51 @@ export const uploadAvatar = async (userId: string, file: File): Promise<string> 
   } catch (error: any) {
     console.error('Error uploading avatar:', error);
     throw new Error(error.message || 'アバターのアップロードに失敗しました');
+  }
+};
+
+// 作品サムネイル画像をアップロード
+export const uploadCreationThumbnail = async (userId: string, file: File): Promise<string> => {
+  try {
+    // ファイルのバリデーション（タイプとサイズ）
+    const validation = validateThumbnailImage(file);
+    if (!validation.valid) {
+      throw new Error(validation.message || 'ファイルのバリデーションに失敗しました');
+    }
+
+    // ファイル拡張子を取得
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `creations/${fileName}`;
+
+    console.log('Uploading thumbnail:', { userId, fileName, filePath, fileSize: file.size });
+
+    // サムネイルをアップロード
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw uploadError;
+    }
+
+    console.log('Upload success:', uploadData);
+
+    // 公開URLを取得
+    const { data } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    console.log('Public URL:', data.publicUrl);
+
+    return data.publicUrl;
+  } catch (error: any) {
+    console.error('Error uploading creation thumbnail:', error);
+    throw new Error(error.message || 'サムネイルのアップロードに失敗しました');
   }
 };
 
@@ -708,8 +753,9 @@ export const getCreations = async (
  * 作品詳細を取得
  * @param creationId 作品ID
  * @param userId 現在のユーザーID（いいね状態を取得するため、optional）
+ * @param visitorId 訪問者ID（未ログインユーザーのいいね状態を取得するため、optional）
  */
-export const getCreationById = async (creationId: string, userId?: string) => {
+export const getCreationById = async (creationId: string, userId?: string, visitorId?: string) => {
   try {
     const { data, error } = await supabase
       .from('creations')
@@ -722,19 +768,51 @@ export const getCreationById = async (creationId: string, userId?: string) => {
 
     if (error) throw error;
 
-    // いいね状態を取得
+    // いいね状態を取得（ログインユーザーの場合）
     if (userId) {
-      const { data: like } = await supabase
-        .from('creation_likes')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('creation_id', creationId)
-        .single();
+      try {
+        const { data: like } = await supabase
+          .from('creation_likes')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('creation_id', creationId)
+          .single();
 
-      return {
-        ...data,
-        is_liked: !!like,
-      };
+        return {
+          ...data,
+          is_liked: !!like,
+        };
+      } catch {
+        // いいね状態の取得に失敗した場合は、いいねしていないとみなす
+        return {
+          ...data,
+          is_liked: false,
+        };
+      }
+    }
+
+    // いいね状態を取得（未ログインユーザーの場合）
+    // 注意：visitor_idカラムがない場合やRLSでブロックされる場合はスキップ
+    if (visitorId) {
+      try {
+        const { data: like } = await supabase
+          .from('creation_likes')
+          .select('id')
+          .eq('visitor_id', visitorId)
+          .eq('creation_id', creationId)
+          .single();
+
+        return {
+          ...data,
+          is_liked: !!like,
+        };
+      } catch {
+        // visitor_idでのいいね状態取得に失敗した場合は、ローカルストレージに任せる
+        return {
+          ...data,
+          is_liked: false,
+        };
+      }
     }
 
     return data;
@@ -859,17 +937,27 @@ export const deleteCreation = async (creationId: string) => {
 
 /**
  * 作品にいいねを追加
- * @param userId ユーザーID
+ * @param userId ユーザーID（ログインユーザーの場合）
  * @param creationId 作品ID
+ * @param visitorId 訪問者ID（未ログインユーザーの場合）
  */
-export const likeCreation = async (userId: string, creationId: string) => {
+export const likeCreation = async (userId: string | null, creationId: string, visitorId?: string) => {
   try {
+    const insertData: { creation_id: string; user_id?: string; visitor_id?: string } = {
+      creation_id: creationId,
+    };
+
+    if (userId) {
+      insertData.user_id = userId;
+    } else if (visitorId) {
+      insertData.visitor_id = visitorId;
+    } else {
+      throw new Error('ユーザーIDまたは訪問者IDが必要です');
+    }
+
     const { error } = await supabase
       .from('creation_likes')
-      .insert({
-        user_id: userId,
-        creation_id: creationId,
-      });
+      .insert(insertData);
 
     if (error) {
       // 既にいいね済みの場合
@@ -888,16 +976,26 @@ export const likeCreation = async (userId: string, creationId: string) => {
 
 /**
  * 作品のいいねを削除
- * @param userId ユーザーID
+ * @param userId ユーザーID（ログインユーザーの場合）
  * @param creationId 作品ID
+ * @param visitorId 訪問者ID（未ログインユーザーの場合）
  */
-export const unlikeCreation = async (userId: string, creationId: string) => {
+export const unlikeCreation = async (userId: string | null, creationId: string, visitorId?: string) => {
   try {
-    const { error } = await supabase
+    let query = supabase
       .from('creation_likes')
       .delete()
-      .eq('user_id', userId)
       .eq('creation_id', creationId);
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    } else if (visitorId) {
+      query = query.eq('visitor_id', visitorId);
+    } else {
+      throw new Error('ユーザーIDまたは訪問者IDが必要です');
+    }
+
+    const { error } = await query;
 
     if (error) throw error;
 

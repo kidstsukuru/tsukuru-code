@@ -1,33 +1,10 @@
 # 管理者機能ガイド
 
+最終更新: 2026-01-17
+
 ## 概要
 
 つくるコード（Tsukuru Code）の管理者機能により、プラットフォームの教材、ユーザー、統計データを一元管理できます。
-
----
-
-## セットアップ
-
-### 1. Supabaseデータベースの設定
-
-`supabase/migrations/001_add_user_roles.sql` のSQLをSupabase Console > SQL Editorで実行してください。
-
-このSQLは以下を実行します：
-- `users`テーブルに`role`カラムを追加
-- Row Level Security (RLS) ポリシーの設定
-- 監査ログテーブルの作成
-
-### 2. 最初の管理者を作成
-
-SQLファイル内の以下の行を編集して、自分のメールアドレスを設定してください：
-
-```sql
-UPDATE users
-SET role = 'super_admin'
-WHERE email = 'your-email@example.com';  -- ← ここを変更
-```
-
-**重要**: このユーザーは事前に登録済みである必要があります。
 
 ---
 
@@ -35,22 +12,21 @@ WHERE email = 'your-email@example.com';  -- ← ここを変更
 
 ### 3つのロール
 
-1. **student（生徒）**
-   - デフォルトのロール
-   - 学習コンテンツにアクセス可能
-   - 管理機能へのアクセス不可
+| ロール | 説明 | 権限 |
+|--------|------|------|
+| **student** | 一般ユーザー（デフォルト） | 学習コンテンツへのアクセス |
+| **admin** | 管理者 | コース/レッスン/ユーザー管理、統計閲覧 |
+| **super_admin** | スーパー管理者 | 全機能 + ロール変更、削除操作 |
 
-2. **admin（管理者）**
-   - 全ての管理機能にアクセス可能
-   - コース・レッスン・クイズの管理
-   - ユーザー情報の閲覧
-   - 統計データの閲覧
+### 管理者権限の付与
 
-3. **super_admin（スーパー管理者）**
-   - 管理者の全機能 + 追加権限
-   - 他のユーザーのロール変更
-   - システム設定の変更
-   - 監査ログの閲覧
+Supabase SQL Editorで実行:
+
+```sql
+UPDATE users
+SET role = 'admin'
+WHERE email = 'your-email@example.com';
+```
 
 ---
 
@@ -58,10 +34,8 @@ WHERE email = 'your-email@example.com';  -- ← ここを変更
 
 ### アクセス方法
 
-1. **ダッシュボードから**
-   - 管理者ロールを持つユーザーは、ダッシュボード右上に「管理画面」ボタンが表示されます
-
-2. **直接URL**
+1. **ダッシュボードから** - 右上の「管理画面」ボタン
+2. **直接URL**:
    - `/admin` - 管理ダッシュボード
    - `/admin/courses` - コース管理
    - `/admin/users` - ユーザー管理
@@ -69,207 +43,145 @@ WHERE email = 'your-email@example.com';  -- ← ここを変更
 
 ### セキュリティ
 
-- 未認証ユーザーは自動的にログインページへリダイレクト
-- 管理者権限がないユーザーはダッシュボードへリダイレクト
-- すべての管理操作はSupabase RLSで二重チェック
+- 未認証ユーザーはログインページへリダイレクト
+- 権限がないユーザーはダッシュボードへリダイレクト
+- Supabase RLSによるデータベースレベルの保護
 
 ---
 
-## 管理画面の構造
+## コース管理
 
-### レイアウト
+### コース一覧 (`/admin/courses`)
 
-```
-┌─────────────┬──────────────────────────────┐
-│             │         ヘッダー              │
-│  サイドバー  ├──────────────────────────────┤
-│             │                              │
-│  ナビ        │      メインコンテンツ         │
-│             │                              │
-└─────────────┴──────────────────────────────┘
-```
+全コースの確認・操作が可能です。
 
-### サイドバーナビゲーション
+**操作:**
+- 新規作成
+- 編集
+- レベル管理へ移動
+- 削除（super_adminのみ）
 
-- 📊 **管理ダッシュボード** (`/admin`)
-  - 概要統計
-  - クイックアクション
-  - 最近のアクティビティ
+### コース作成
 
-- 📚 **コース管理** (`/admin/courses`)
-  - コース一覧
-  - コース作成・編集・削除
-  - レッスン管理
-
-- 👥 **ユーザー管理** (`/admin/users`)
-  - ユーザー一覧
-  - ユーザー詳細
-  - ロール変更
-
-- 📈 **分析・統計** (`/admin/analytics`)
-  - ダッシュボード統計
-  - コース完了率
-  - ユーザーエンゲージメント
+| フィールド | 必須 | 説明 |
+|-----------|------|------|
+| コースID | Yes | 英小文字・数字・ハイフン（例: `scratch-intro`） |
+| コース名 | Yes | 表示名 |
+| 説明 | Yes | コース内容の説明 |
+| アイコン | No | 絵文字1文字 |
+| 難易度 | Yes | beginner / intermediate / advanced |
+| 推定時間 | Yes | 完了までの時間（時間） |
+| 公開 | No | チェックで公開 |
 
 ---
 
-## 実装状況
+## レベル管理
 
-### ✅ フェーズ1: 基盤構築（完了）
+### 3層構造
 
-1. **権限管理システム**
-   - ユーザーロール（student, admin, super_admin）
-   - Supabase RLSポリシー
-   - authStoreでの権限管理
+```
+コース → レベル → レッスン
+```
 
-2. **管理画面のルーティング**
-   - `AdminRoute`コンポーネントによるアクセス制限
-   - 管理画面専用レイアウト
-   - 基本的なルート構造
+レベルはコース内の中間層で、関連するレッスンをグループ化します。
 
-3. **管理ダッシュボード**
-   - 統計カードの表示
-   - クイックアクション
-   - ナビゲーション
+### レベル作成 (`/admin/courses/:courseId/levels`)
 
-### 🚧 フェーズ2: 教材管理機能（次のステップ）
-
-1. **コース管理**
-   - コースCRUD操作
-   - ドラッグ&ドロップで順序変更
-   - 公開/非公開切り替え
-
-2. **レッスンエディタ**
-   - リッチテキストエディタ
-   - コンテンツブロック管理
-   - プレビュー機能
-
-3. **クイズ管理**
-   - クイズ作成・編集
-   - 複数の問題形式
-   - 正解率統計
-
-### 📅 フェーズ3: ユーザー管理（将来）
-
-1. **ユーザー一覧・検索**
-2. **ユーザー詳細・編集**
-3. **ロール変更**
-
-### 📅 フェーズ4: 分析・統計（将来）
-
-1. **統計ダッシュボード**
-2. **コース分析**
-3. **ユーザーエンゲージメント**
+| フィールド | 必須 | 説明 |
+|-----------|------|------|
+| タイトル | Yes | レベル名（例: 「基礎編」） |
+| 説明 | No | レベルの説明 |
+| レベル番号 | Yes | 表示順序（1, 2, 3...） |
+| ボーナスXP | Yes | レベル完了時の報酬 |
+| 公開 | No | チェックで公開 |
 
 ---
 
-## ファイル構造
+## レッスン管理
 
-```
-/components
-  /admin
-    /layout
-      - AdminSidebar.tsx      # サイドバーナビゲーション
-      - AdminHeader.tsx       # ヘッダー
-      - AdminLayout.tsx       # 共通レイアウト
-  /routes
-    - AdminRoute.tsx          # アクセス制限コンポーネント
+### レッスン作成 (`/admin/courses/:courseId/levels/:levelId/lessons`)
 
-/pages
-  - AdminDashboardPage.tsx    # 管理ダッシュボード
+| フィールド | 必須 | 説明 |
+|-----------|------|------|
+| レッスンID | Yes | 英小文字・数字・ハイフン |
+| レッスン名 | Yes | 表示名 |
+| 説明 | Yes | レッスンの説明 |
+| YouTube URL | No | 動画のURL |
+| コンテンツ | No | リッチテキストエディタで編集 |
+| XP報酬 | Yes | 完了時の経験値 |
+| 所要時間 | Yes | 分単位 |
+| 公開 | No | チェックで公開 |
 
-/store
-  - authStore.ts              # 権限管理を含む認証ストア
+### リッチテキストエディタ
 
-/types
-  - index.ts                  # 管理機能の型定義
-
-/supabase
-  /migrations
-    - 001_add_user_roles.sql  # データベース設定SQL
-  - schema.sql                # データベーススキーマ
-```
+TipTapベースのエディタで以下が利用可能:
+- 見出し（H1〜H3）
+- 太字、斜体、下線
+- リスト（箇条書き、番号付き）
+- リンク
+- 画像（URLを指定）
 
 ---
 
-## コンポーネント使用例
+## ユーザー管理
 
-### AdminRoute
+### ユーザー一覧 (`/admin/users`)
 
-管理者専用ルートを保護：
+- ユーザー検索
+- ロール変更
+- アカウント有効/無効化
+- 学習進捗の確認
 
-```tsx
-<Route path="/admin" element={
-  <AdminRoute>
-    <AdminLayout>
-      <AdminDashboardPage />
-    </AdminLayout>
-  </AdminRoute>
-} />
-```
+### ロール変更
 
-スーパー管理者専用：
-
-```tsx
-<Route path="/admin/system" element={
-  <AdminRoute requireSuperAdmin={true}>
-    <AdminLayout>
-      <SystemSettingsPage />
-    </AdminLayout>
-  </AdminRoute>
-} />
-```
-
-### 権限チェック
-
-コンポーネント内で権限をチェック：
-
-```tsx
-const { isAdmin, isSuperAdmin } = useAuthStore();
-
-return (
-  <div>
-    {isAdmin && <AdminButton />}
-    {isSuperAdmin && <DangerousButton />}
-  </div>
-);
-```
+super_admin のみがロール変更可能です。
 
 ---
 
-## セキュリティベストプラクティス
+## 分析・統計 (`/admin/analytics`)
 
-### フロントエンド
+### ダッシュボード統計
 
-1. **UI制御**
-   ```tsx
-   {isAdmin && <ManagementButton />}
-   ```
-   - 管理者以外には管理機能のUIを表示しない
+- 総ユーザー数
+- アクティブユーザー数
+- 完了レッスン数
+- 平均完了率
 
-2. **ルート保護**
-   ```tsx
-   <AdminRoute>{children}</AdminRoute>
-   ```
-   - 不正アクセスを自動的にリダイレクト
+### ユーザーアクティビティ
 
-### バックエンド（Supabase）
+- 日別アクティブユーザー推移
+- コース別完了率
+- 人気レッスンランキング
 
-1. **Row Level Security (RLS)**
-   ```sql
-   CREATE POLICY "Admins can manage courses" ON courses
-     FOR ALL USING (
-       EXISTS (
-         SELECT 1 FROM users
-         WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
-       )
-     );
-   ```
-   - データベースレベルで権限を厳格に制御
+---
 
-2. **監査ログ**
-   - すべての管理操作を記録
-   - 誰が・いつ・何を変更したかを追跡
+## ファイル構成
+
+```
+/components/admin/
+  ├── layout/
+  │   ├── AdminSidebar.tsx    # サイドバー
+  │   ├── AdminHeader.tsx     # ヘッダー
+  │   └── AdminLayout.tsx     # レイアウト
+  └── ...
+
+/pages/
+  ├── AdminDashboardPage.tsx  # ダッシュボード
+  ├── AdminCoursesPage.tsx    # コース一覧
+  ├── AdminCourseFormPage.tsx # コース作成/編集
+  ├── AdminLevelsPage.tsx     # レベル一覧
+  ├── AdminLevelFormPage.tsx  # レベル作成/編集
+  ├── AdminLessonsPage.tsx    # レッスン一覧
+  ├── AdminLessonFormPage.tsx # レッスン作成/編集
+  ├── AdminUsersPage.tsx      # ユーザー管理
+  └── AdminAnalyticsPage.tsx  # 分析・統計
+
+/services/
+  └── adminService.ts         # 管理者用API
+
+/components/routes/
+  └── AdminRoute.tsx          # アクセス制限
+```
 
 ---
 
@@ -277,51 +189,29 @@ return (
 
 ### 管理画面にアクセスできない
 
-1. **ロールの確認**
-   ```sql
-   SELECT email, role FROM users WHERE email = 'your-email@example.com';
-   ```
+1. ロールを確認:
+```sql
+SELECT email, role FROM users WHERE email = 'your-email@example.com';
+```
 
-2. **ロールの変更（Supabase SQL Editor）**
-   ```sql
-   UPDATE users
-   SET role = 'admin'
-   WHERE email = 'your-email@example.com';
-   ```
+2. ロールを変更:
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'your-email@example.com';
+```
 
-### RLSポリシーエラー
+### コースが表示されない
 
-- Supabase Consoleでポリシーが正しく設定されているか確認
-- `001_add_user_roles.sql`を再実行
+- `is_published` が `true` になっているか確認
+- 管理画面では非公開コースも表示されます
 
-### 管理画面が表示されない
+### レッスンが作成できない
 
-- ブラウザのコンソールでエラーを確認
-- `authStore`の`isAdmin`が正しく設定されているか確認
+- レッスンIDが重複していないか確認
+- 管理者権限があるか確認
 
 ---
 
-## 次のステップ
+## 関連ドキュメント
 
-フェーズ2（教材管理機能）を実装する場合：
-
-1. **Supabaseテーブルの作成**
-   - courses
-   - lessons
-   - quizzes
-
-2. **adminService.tsの作成**
-   - CRUD操作のAPI
-
-3. **コース管理UIの実装**
-   - コース一覧
-   - コース作成フォーム
-   - レッスンエディタ
-
-詳細は開発チームにお問い合わせください。
-
----
-
-## サポート
-
-質問や問題がある場合は、GitHubのIssueで報告してください。
+- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) - データベース設計
+- [DEVELOPMENT.md](./DEVELOPMENT.md) - 開発環境ガイド

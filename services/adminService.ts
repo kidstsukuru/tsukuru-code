@@ -514,15 +514,17 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
     .from('users')
     .select('*', { count: 'exact', head: true });
 
-  // アクティブユーザー数（過去30日以内にログインしたユーザー）
+  // アクティブユーザー数（過去30日以内に学習したユーザー）
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const { count: activeUsers } = await supabase
+  const { data: activeUsersData } = await supabase
     .from('user_progress')
-    .select('user_id', { count: 'exact', head: true })
-    .gte('last_accessed_at', thirtyDaysAgo.toISOString())
-    .not('user_id', 'is', null);
+    .select('user_id')
+    .gte('completed_at', thirtyDaysAgo.toISOString());
+
+  const uniqueActiveUsers = new Set(activeUsersData?.map((u) => u.user_id) || []);
+  const activeUsers = uniqueActiveUsers.size;
 
   // 総コース数
   const { count: totalCourses } = await supabase
@@ -539,19 +541,19 @@ export const getAnalyticsStats = async (): Promise<AnalyticsStats> => {
     .from('creations')
     .select('*', { count: 'exact', head: true });
 
-  // 平均完了率を計算
+  // 平均完了率を計算（完了したレッスン数 / 全進捗レコード数）
   const { data: progressData } = await supabase
     .from('user_progress')
-    .select('progress_percentage');
+    .select('completed');
 
+  const completedCount = progressData?.filter((p) => p.completed === true).length || 0;
+  const totalProgressRecords = progressData?.length || 0;
   const averageCompletionRate =
-    progressData && progressData.length > 0
-      ? progressData.reduce((acc, p) => acc + (p.progress_percentage || 0), 0) / progressData.length
-      : 0;
+    totalProgressRecords > 0 ? (completedCount / totalProgressRecords) * 100 : 0;
 
   return {
     totalUsers: totalUsers || 0,
-    activeUsers: activeUsers || 0,
+    activeUsers: activeUsers,
     totalCourses: totalCourses || 0,
     totalLessons: totalLessons || 0,
     totalCreations: totalCreations || 0,
@@ -572,68 +574,57 @@ export const getCourseStats = async (): Promise<CourseStats[]> => {
 
   const courseStats = await Promise.all(
     courses.map(async (course) => {
-      // コースのレッスン数
-      const { count: totalLessons } = await supabase
+      // コースのレッスンを取得
+      const { data: lessons } = await supabase
         .from('lessons')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('course_id', course.id);
 
-      // コースに登録したユーザー数（進捗があるユーザー）
-      const { data: enrolledUsersData } = await supabase
-        .from('user_progress')
-        .select('user_id')
-        .in(
-          'lesson_id',
-          (
-            await supabase
-              .from('lessons')
-              .select('id')
-              .eq('course_id', course.id)
-          ).data?.map((l) => l.id) || []
-        );
+      const lessonIds = lessons?.map((l) => l.id) || [];
+      const totalLessons = lessonIds.length;
 
-      const uniqueUsers = new Set(enrolledUsersData?.map((e) => e.user_id) || []);
+      if (totalLessons === 0) {
+        return {
+          id: course.id,
+          title: course.title,
+          enrolledUsers: 0,
+          completionRate: 0,
+          averageProgress: 0,
+          totalLessons: 0,
+        };
+      }
+
+      // コースに登録したユーザーの進捗データを取得
+      const { data: progressData } = await supabase
+        .from('user_progress')
+        .select('user_id, lesson_id, completed')
+        .in('lesson_id', lessonIds);
+
+      // ユニークユーザー数（登録者数）
+      const uniqueUsers = new Set(progressData?.map((p) => p.user_id) || []);
       const enrolledUsers = uniqueUsers.size;
 
-      // 完了率の計算
-      const { data: completedData } = await supabase
-        .from('user_progress')
-        .select('user_id, lesson_id')
-        .eq('status', 'completed')
-        .in(
-          'lesson_id',
-          (
-            await supabase
-              .from('lessons')
-              .select('id')
-              .eq('course_id', course.id)
-          ).data?.map((l) => l.id) || []
-        );
+      // 完了したレッスン数
+      const completedLessons = progressData?.filter((p) => p.completed === true).length || 0;
 
-      const completedLessons = completedData?.length || 0;
-      const totalPossibleCompletions = enrolledUsers * (totalLessons || 1);
+      // 完了率の計算（ユーザーごとの平均完了レッスン数）
+      const totalPossibleCompletions = enrolledUsers * totalLessons;
       const completionRate =
         totalPossibleCompletions > 0 ? (completedLessons / totalPossibleCompletions) * 100 : 0;
 
-      // 平均進捗率
-      const { data: progressData } = await supabase
-        .from('user_progress')
-        .select('progress_percentage')
-        .in(
-          'lesson_id',
-          (
-            await supabase
-              .from('lessons')
-              .select('id')
-              .eq('course_id', course.id)
-          ).data?.map((l) => l.id) || []
-        );
+      // 平均進捗率（各ユーザーの完了レッスン数 / 総レッスン数 の平均）
+      const userProgressMap = new Map<string, number>();
+      progressData?.forEach((p) => {
+        if (p.completed) {
+          userProgressMap.set(p.user_id, (userProgressMap.get(p.user_id) || 0) + 1);
+        }
+      });
 
-      const averageProgress =
-        progressData && progressData.length > 0
-          ? progressData.reduce((acc, p) => acc + (p.progress_percentage || 0), 0) /
-          progressData.length
-          : 0;
+      let totalProgress = 0;
+      userProgressMap.forEach((completedCount) => {
+        totalProgress += (completedCount / totalLessons) * 100;
+      });
+      const averageProgress = enrolledUsers > 0 ? totalProgress / enrolledUsers : 0;
 
       return {
         id: course.id,
@@ -641,7 +632,7 @@ export const getCourseStats = async (): Promise<CourseStats[]> => {
         enrolledUsers,
         completionRate: Math.round(completionRate),
         averageProgress: Math.round(averageProgress),
-        totalLessons: totalLessons || 0,
+        totalLessons,
       };
     })
   );
@@ -650,37 +641,47 @@ export const getCourseStats = async (): Promise<CourseStats[]> => {
 };
 
 export const getUserActivityData = async (days: number = 30): Promise<UserActivityData[]> => {
-  const result: UserActivityData[] = [];
   const today = new Date();
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - days + 1);
+  const startDateString = startDate.toISOString().split('T')[0];
+
+  // 期間内の新規ユーザーを一括取得
+  const { data: newUsersData } = await supabase
+    .from('users')
+    .select('created_at')
+    .gte('created_at', startDateString);
+
+  // 期間内のアクティブユーザーを一括取得（completed_atを使用）
+  const { data: activeUsersData } = await supabase
+    .from('user_progress')
+    .select('user_id, completed_at')
+    .gte('completed_at', startDateString);
+
+  // 日付ごとに集計
+  const result: UserActivityData[] = [];
 
   for (let i = days - 1; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     const dateString = date.toISOString().split('T')[0];
 
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + 1);
-    const nextDateString = nextDate.toISOString().split('T')[0];
-
     // その日に登録したユーザー数
-    const { count: newUsers } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', dateString)
-      .lt('created_at', nextDateString);
+    const newUsers = newUsersData?.filter((u) => {
+      const createdDate = u.created_at?.split('T')[0];
+      return createdDate === dateString;
+    }).length || 0;
 
-    // その日にアクティブだったユーザー数
-    const { data: activeUsersData } = await supabase
-      .from('user_progress')
-      .select('user_id')
-      .gte('last_accessed_at', dateString)
-      .lt('last_accessed_at', nextDateString);
-
-    const uniqueActiveUsers = new Set(activeUsersData?.map((u) => u.user_id) || []);
+    // その日にアクティブだったユーザー数（レッスンを完了したユーザー）
+    const activeOnDate = activeUsersData?.filter((u) => {
+      const completedDate = u.completed_at?.split('T')[0];
+      return completedDate === dateString;
+    }) || [];
+    const uniqueActiveUsers = new Set(activeOnDate.map((u) => u.user_id));
 
     result.push({
       date: dateString,
-      newUsers: newUsers || 0,
+      newUsers,
       activeUsers: uniqueActiveUsers.size,
     });
   }

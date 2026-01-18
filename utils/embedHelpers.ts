@@ -134,31 +134,6 @@ export function getEmbedCodeExample(): string {
 }
 
 /**
- * URLから埋め込みプラットフォーム名を取得
- * @param url - 埋め込みURL
- * @returns プラットフォーム名（例: "Scratch", "YouTube"）
- */
-export function getEmbedPlatformName(url: string): string {
-  if (!url) return 'Unknown';
-
-  try {
-    const urlObj = new URL(url);
-    const hostname = urlObj.hostname.toLowerCase();
-
-    if (hostname.includes('scratch.mit.edu')) return 'Scratch';
-    if (hostname.includes('turbowarp.org')) return 'TurboWarp';
-    if (hostname.includes('codepen.io')) return 'CodePen';
-    if (hostname.includes('replit.com')) return 'Replit';
-    if (hostname.includes('youtube.com') || hostname.includes('youtube-nocookie.com')) return 'YouTube';
-    if (hostname.includes('vimeo.com')) return 'Vimeo';
-
-    return 'Web';
-  } catch {
-    return 'Unknown';
-  }
-}
-
-/**
  * 埋め込みURLが有効かどうかを検証し、エラーメッセージを返す
  * @param input - 検証する入力文字列
  * @returns エラーメッセージ、有効な場合はnull
@@ -200,19 +175,3 @@ export function isValidGameUrl(url: string): boolean {
   }
 }
 
-/**
- * ゲームURL入力の検証とエラーメッセージを返す
- * @param input - 検証する入力文字列
- * @returns エラーメッセージ、有効な場合はnull
- */
-export function validateGameUrl(input: string): string | null {
-  if (!input || !input.trim()) {
-    return 'ゲームのURLを入力してください';
-  }
-
-  if (!isValidGameUrl(input)) {
-    return '有効なURLを入力してください（例: https://example.com/game）';
-  }
-
-  return null; // 検証成功
-}

@@ -216,98 +216,6 @@ import { getImageAcceptString } from '../utils/fileValidation';
 
 ---
 
-## 📊 エラーログとプライバシー
-
-### 環境別のログ出力
-
-機密情報の漏洩を防ぐため、環境に応じてログ出力を制御しています。
-
-### 実装内容
-
-**ロギングユーティリティ:** `utils/logger.ts`
-
-```typescript
-import { logError, logWarn, logInfo } from '../utils/logger';
-
-// 開発環境でのみ詳細なエラーログを出力
-logError('An error occurred', error);
-
-// 本番環境ではユーザーフレンドリーなメッセージのみ表示
-```
-
-### ログポリシー
-
-| 環境 | console.error | console.log | 詳細情報 |
-|------|--------------|-------------|---------|
-| **開発環境** | ✅ 出力 | ✅ 出力 | ✅ スタックトレース含む |
-| **本番環境** | ❌ 抑制 | ❌ 抑制 | ❌ 一般的なメッセージのみ |
-
-### 機密情報のサニタイズ
-
-ログに記録される前に、以下の情報は自動的に `[REDACTED]` に置き換えられます：
-
-- パスワード
-- トークン
-- APIキー
-- Cookie
-- セッション情報
-
----
-
-## ⏱️ セッションタイムアウト
-
-### 自動ログアウト機能
-
-セキュリティを強化するため、非アクティブなセッションを自動的にログアウトする機能を提供しています。
-
-### 実装方法
-
-**ユーティリティ:** `utils/sessionTimeout.ts`
-
-```typescript
-import { initSessionTimeout, cleanupSessionTimeout } from '../utils/sessionTimeout';
-
-// セッションタイムアウトを初期化
-initSessionTimeout(
-  () => {
-    // 30分非アクティブでログアウト
-    logout();
-    toast.info('セッションがタイムアウトしました');
-  },
-  () => {
-    // 5分前に警告表示
-    toast.warning('まもなくセッションがタイムアウトします');
-  }
-);
-
-// クリーンアップ
-cleanupSessionTimeout();
-```
-
-### タイムアウト設定
-
-- **タイムアウト時間**: 30分（非アクティブ状態）
-- **警告表示**: タイムアウトの5分前
-- **監視イベント**: マウス移動、キー入力、スクロール、タッチ操作
-
-### 使用方法
-
-App.tsx等のルートコンポーネントで初期化してください：
-
-```tsx
-useEffect(() => {
-  if (isAuthenticated) {
-    initSessionTimeout(handleTimeout, handleWarning);
-  }
-
-  return () => {
-    cleanupSessionTimeout();
-  };
-}, [isAuthenticated]);
-```
-
----
-
 ## 📄 セキュリティチェックリスト
 
 開発時には以下を確認してください：
@@ -330,7 +238,6 @@ useEffect(() => {
 ### 認証・認可
 - [ ] Supabase RLS ポリシーが適切に設定されている
 - [ ] 管理者機能にはクライアント側とサーバー側の両方で権限チェック
-- [ ] セッションタイムアウトが適切に実装されている
 
 ### セキュリティヘッダー
 - [ ] Content Security Policy (CSP) が設定されている
@@ -338,7 +245,6 @@ useEffect(() => {
 
 ### エラー処理
 - [ ] 本番環境で機密情報を含むエラーメッセージが表示されない
-- [ ] エラーログは `utils/logger.ts` を使用して環境別に制御
 - [ ] 本番環境のエラーは監視サービスに送信（推奨）
 
 ### コードレビュー

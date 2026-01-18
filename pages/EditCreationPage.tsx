@@ -4,9 +4,10 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
-import { getCreationById, updateCreation } from '../services/supabaseService';
+import { getCreationById, updateCreation, uploadCreationThumbnail } from '../services/supabaseService';
 import { useAuthStore } from '../store/authStore';
 import { extractEmbedUrl, getEmbedCodeExample, isValidGameUrl } from '../utils/embedHelpers';
+import { validateThumbnailImage, getImageAcceptString, formatFileSize, MAX_FILE_SIZE } from '../utils/fileValidation';
 import type { Creation } from '../types';
 
 const ArrowLeftIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -44,6 +45,9 @@ const EditCreationPage: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [urlType, setUrlType] = useState<'embed' | 'url'>('embed');
   const [embedPreviewUrl, setEmbedPreviewUrl] = useState<string>('');
+  const [thumbnailInputType, setThumbnailInputType] = useState<'url' | 'file' | 'keep'>('keep');
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
 
   const {
     register,
@@ -103,12 +107,21 @@ const EditCreationPage: React.FC = () => {
 
   // サムネイルプレビューの更新
   React.useEffect(() => {
-    if (thumbnailUrl && thumbnailUrl.startsWith('http')) {
+    if (thumbnailInputType === 'file' && thumbnailFile) {
+      // ファイルの場合はDataURLを生成
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(thumbnailFile);
+    } else if (thumbnailInputType === 'url' && thumbnailUrl && thumbnailUrl.startsWith('http')) {
       setPreviewUrl(thumbnailUrl);
+    } else if (thumbnailInputType === 'keep' && creation?.thumbnail_url) {
+      setPreviewUrl(creation.thumbnail_url);
     } else {
       setPreviewUrl('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=800&auto=format&fit=crop');
     }
-  }, [thumbnailUrl]);
+  }, [thumbnailUrl, thumbnailFile, thumbnailInputType, creation]);
 
   // 埋め込みプレビューの更新
   React.useEffect(() => {
@@ -129,6 +142,25 @@ const EditCreationPage: React.FC = () => {
       setEmbedPreviewUrl('');
     }
   }, [codeUrl, urlType]);
+
+  // ファイル選択時のハンドラー
+  const handleThumbnailFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setThumbnailFile(null);
+      return;
+    }
+
+    // バリデーション
+    const validation = validateThumbnailImage(file);
+    if (!validation.valid) {
+      toast.error(validation.message || 'ファイルのバリデーションに失敗しました');
+      e.target.value = '';
+      return;
+    }
+
+    setThumbnailFile(file);
+  };
 
   const onSubmit = async (data: CreationFormData) => {
     if (!user || !id) {
@@ -161,13 +193,40 @@ const EditCreationPage: React.FC = () => {
         finalUrl = data.code_url.trim();
       }
 
-      await updateCreation(id, {
+      // サムネイルURLの取得（ファイルアップロード、URL、または既存を維持）
+      let thumbnailUrl: string | undefined;
+      console.log('Thumbnail input type:', thumbnailInputType, 'File:', thumbnailFile);
+
+      if (thumbnailInputType === 'file' && thumbnailFile) {
+        setIsUploadingThumbnail(true);
+        try {
+          thumbnailUrl = await uploadCreationThumbnail(user.uid, thumbnailFile);
+          console.log('Uploaded thumbnail URL:', thumbnailUrl);
+        } catch (uploadError: any) {
+          toast.error(uploadError.message || 'サムネイルのアップロードに失敗しました');
+          setIsSubmitting(false);
+          setIsUploadingThumbnail(false);
+          return;
+        }
+        setIsUploadingThumbnail(false);
+      } else if (thumbnailInputType === 'url' && data.thumbnail_url) {
+        thumbnailUrl = data.thumbnail_url;
+      } else if (thumbnailInputType === 'keep') {
+        thumbnailUrl = creation?.thumbnail_url;
+      }
+
+      console.log('Final thumbnail URL to update:', thumbnailUrl);
+
+      const updateData = {
         title: data.title,
         description: data.description || undefined,
-        thumbnail_url: data.thumbnail_url || undefined,
+        thumbnail_url: thumbnailUrl,
         code_url: finalUrl,
         is_published: data.is_published,
-      });
+      };
+      console.log('Updating creation with:', updateData);
+
+      await updateCreation(id, updateData);
 
       toast.success('作品を更新しました！');
       navigate(`/creations/${id}`);
@@ -176,6 +235,7 @@ const EditCreationPage: React.FC = () => {
       toast.error(error.message || '作品の更新に失敗しました');
     } finally {
       setIsSubmitting(false);
+      setIsUploadingThumbnail(false);
     }
   };
 
@@ -236,11 +296,10 @@ const EditCreationPage: React.FC = () => {
                 id="title"
                 type="text"
                 {...register('title')}
-                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 ${
-                  errors.title
+                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 ${errors.title
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-slate-700 focus:ring-cyan-500'
-                }`}
+                  }`}
                 placeholder="例: ギャラクシー・ランナー"
               />
               {errors.title && (
@@ -257,11 +316,10 @@ const EditCreationPage: React.FC = () => {
                 id="description"
                 {...register('description')}
                 rows={4}
-                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 resize-none ${
-                  errors.description
+                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 resize-none ${errors.description
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-slate-700 focus:ring-cyan-500'
-                }`}
+                  }`}
                 placeholder="作品の説明を入力してください..."
               />
               {errors.description && (
@@ -269,27 +327,137 @@ const EditCreationPage: React.FC = () => {
               )}
             </div>
 
-            {/* Thumbnail URL */}
+            {/* Thumbnail */}
             <div>
-              <label htmlFor="thumbnail_url" className="block text-sm font-medium text-gray-300 mb-2">
-                サムネイルURL
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                サムネイル画像
               </label>
-              <input
-                id="thumbnail_url"
-                type="url"
-                {...register('thumbnail_url')}
-                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 ${
-                  errors.thumbnail_url
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-slate-700 focus:ring-cyan-500'
-                }`}
-                placeholder="https://example.com/image.jpg"
-              />
-              {errors.thumbnail_url && (
-                <p className="mt-1 text-sm text-red-400">{errors.thumbnail_url.message}</p>
+
+              {/* Thumbnail input type selector */}
+              <div className="flex gap-2 mb-3 flex-wrap">
+                {creation?.thumbnail_url && (
+                  <button
+                    type="button"
+                    onClick={() => setThumbnailInputType('keep')}
+                    className={`flex-1 min-w-[100px] px-3 py-2 text-sm font-medium rounded-lg transition-colors ${thumbnailInputType === 'keep'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                      }`}
+                  >
+                    📌 現在の画像を維持
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setThumbnailInputType('file')}
+                  className={`flex-1 min-w-[100px] px-3 py-2 text-sm font-medium rounded-lg transition-colors ${thumbnailInputType === 'file'
+                      ? 'bg-cyan-500 text-white'
+                      : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                    }`}
+                >
+                  📁 新しい画像をアップロード
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setThumbnailInputType('url')}
+                  className={`flex-1 min-w-[100px] px-3 py-2 text-sm font-medium rounded-lg transition-colors ${thumbnailInputType === 'url'
+                      ? 'bg-cyan-500 text-white'
+                      : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                    }`}
+                >
+                  🔗 URLで指定
+                </button>
+              </div>
+
+              {/* Keep current thumbnail */}
+              {thumbnailInputType === 'keep' && creation?.thumbnail_url && (
+                <div className="p-3 bg-slate-900 border border-slate-700 rounded-lg">
+                  <p className="text-sm text-gray-400 mb-2">現在のサムネイル:</p>
+                  <img
+                    src={creation.thumbnail_url}
+                    alt="現在のサムネイル"
+                    className="w-full h-32 object-cover rounded-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=800&auto=format&fit=crop';
+                    }}
+                  />
+                </div>
               )}
-              <p className="mt-1 text-xs text-gray-500">
-                未入力の場合はデフォルト画像が使用されます
+
+              {/* File upload input */}
+              {thumbnailInputType === 'file' && (
+                <div>
+                  <div className="relative">
+                    <input
+                      id="thumbnail_file"
+                      type="file"
+                      accept={getImageAcceptString()}
+                      onChange={handleThumbnailFileChange}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="thumbnail_file"
+                      className={`flex items-center justify-center w-full px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${thumbnailFile
+                          ? 'border-cyan-500 bg-cyan-500/10'
+                          : 'border-slate-600 hover:border-slate-500 bg-slate-900'
+                        }`}
+                    >
+                      {thumbnailFile ? (
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">✅</span>
+                          <div className="text-left">
+                            <p className="text-sm font-medium text-gray-200">{thumbnailFile.name}</p>
+                            <p className="text-xs text-gray-400">{formatFileSize(thumbnailFile.size)}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <span className="text-3xl mb-2 block">📷</span>
+                          <p className="text-sm text-gray-300">クリックして画像を選択</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            PNG, JPG, GIF, WebP（最大 {formatFileSize(MAX_FILE_SIZE.THUMBNAIL)}）
+                          </p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                  {thumbnailFile && (
+                    <button
+                      type="button"
+                      onClick={() => setThumbnailFile(null)}
+                      className="mt-2 text-sm text-red-400 hover:text-red-300"
+                    >
+                      ✕ 画像を削除
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* URL input */}
+              {thumbnailInputType === 'url' && (
+                <div>
+                  <input
+                    id="thumbnail_url"
+                    type="url"
+                    {...register('thumbnail_url')}
+                    className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 ${errors.thumbnail_url
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'border-slate-700 focus:ring-cyan-500'
+                      }`}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  {errors.thumbnail_url && (
+                    <p className="mt-1 text-sm text-red-400">{errors.thumbnail_url.message}</p>
+                  )}
+                </div>
+              )}
+
+              <p className="mt-2 text-xs text-gray-500">
+                {thumbnailInputType === 'keep'
+                  ? '💡 変更しない場合は現在の画像が維持されます'
+                  : thumbnailInputType === 'file'
+                    ? '💡 新しいサムネイル画像をアップロードしてください'
+                    : '💡 URLを入力しない場合はデフォルト画像が使用されます'}
               </p>
             </div>
 
@@ -323,11 +491,10 @@ const EditCreationPage: React.FC = () => {
                 id="code_url"
                 {...register('code_url')}
                 rows={urlType === 'embed' ? 5 : 2}
-                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 font-mono text-sm resize-none ${
-                  errors.code_url
+                className={`w-full px-4 py-2 bg-slate-900 border rounded-lg text-gray-200 focus:outline-none focus:ring-2 font-mono text-sm resize-none ${errors.code_url
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-slate-700 focus:ring-cyan-500'
-                }`}
+                  }`}
                 placeholder={urlType === 'embed'
                   ? getEmbedCodeExample()
                   : 'https://example.com/games/my-game/index.html'}
@@ -367,13 +534,14 @@ const EditCreationPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`flex-1 px-6 py-3 font-bold rounded-lg transition-all ${
-                  isSubmitting
+                className={`flex-1 px-6 py-3 font-bold rounded-lg transition-all ${isSubmitting
                     ? 'bg-gray-500 cursor-not-allowed'
                     : 'bg-gradient-to-r from-cyan-500 to-fuchsia-500 hover:from-cyan-600 hover:to-fuchsia-600 text-white shadow-lg hover:shadow-cyan-500/50'
-                }`}
+                  }`}
               >
-                {isSubmitting ? '更新中...' : '更新する'}
+                {isSubmitting
+                  ? (isUploadingThumbnail ? '画像をアップロード中...' : '更新中...')
+                  : '更新する'}
               </button>
             </div>
           </form>

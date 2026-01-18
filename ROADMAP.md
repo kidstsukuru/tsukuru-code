@@ -1,5 +1,7 @@
 # プログラミング学習プラットフォーム開発ロードマップ
 
+最終更新: 2026-01-17
+
 ## 1. プロジェクト概要
 
 Duolingoのようなゲーミフィケーション要素を取り入れた、小中学生向けのモバイルフレンドリーなプログラミング学習プラットフォームを構築します。子どもたちが毎日楽しくログインしたくなるような、魅力的で直感的な体験を提供することを目指します。
@@ -9,146 +11,173 @@ Duolingoのようなゲーミフィケーション要素を取り入れた、小
 
 ---
 
-## 2. MVP（Minimum Viable Product）機能一覧
+## 2. 実装済み機能
 
-### 無料ユーザー向け機能 (MVP)
+### ユーザー向け機能
 
-- **ユーザー認証:** 簡単なメールアドレスとパスワードによる登録・ログイン機能。
-- **Scratch学習コース:** ビデオレッスン形式でScratchの基本を学べるコース。
-- **学習進捗管理:** クリアしたレッスンやチャプターを可視化し、達成感を得られるようにする。
-- **連続ログイン記録:** 毎日のログインを記録し、継続を促す。
-- **バッジ獲得機能:** 特定の目標（例: 5日間連続ログイン、初めてのコース完了）を達成するとバッジを獲得できる。
-- **レスポンシブデザイン:** スマートフォンでの学習に最適化されたモバイルファーストのUI。
-- **クリエイターズワールド (v1):** 他のユーザーが作った作品を閲覧し、遊ぶことができるページ。
+- **ユーザー認証:** Supabaseによるメール/パスワード認証
+- **学習コース:** 3層構造（コース → レベル → レッスン）でのビデオレッスン
+- **学習進捗管理:** レッスン・レベル完了の追跡、XP獲得
+- **連続ログイン記録:** ログインストリーク機能
+- **バッジ獲得機能:** 条件達成でバッジを獲得
+- **クリエイターズワールド:** 作品の投稿・閲覧・いいね・再生数カウント
+- **マイ作品管理:** 作品の作成・編集・削除、サムネイル画像アップロード
+- **プロフィール設定:** DiceBearアバター、表示名変更
+- **レスポンシブデザイン:** モバイルファーストのUI
+- **PWA対応:** オフライン動作、ホーム画面追加
+- **多言語対応:** 日本語・英語
 
-### 有料ユーザー向け機能 (MVP以降)
+### 管理者向け機能
 
-- **AIメンターチャットボット:** 学習中の疑問をいつでも質問できるAIチャットボット（Gemini APIを利用）。
-- **上級コースへのアクセス:** Scratch以外のより高度なコース（Python、Web開発、AI基礎など）を受講できる。
-- **プレミアムコンテンツ:** 有料ユーザー限定のバッジ、アバターアイテム、称号など。
-- **学習プランのパーソナライズ:** AIが学習状況を分析し、最適な学習プランを提案。
-- **手厚いサポート:** 保護者も利用できる優先的なカスタマーサポート。
+- **管理ダッシュボード:** 統計概要、ユーザーアクティビティ
+- **コース管理:** CRUD操作、公開/非公開切り替え
+- **レベル管理:** コース内レベルの作成・編集
+- **レッスン管理:** リッチテキストエディタ、YouTube埋め込み
+- **ユーザー管理:** ロール変更、アカウント有効/無効化
+- **分析・統計:** 学習データの可視化
 
----
+### 将来実装予定
 
-## 3. 技術スタック（現在の実装状況）
-
-| カテゴリ       | 技術                                   | 実装状況 | 備考                                                               |
-| :------------- | :------------------------------------- | :------- | :----------------------------------------------------------------- |
-| **フロントエンド** | React 19.2.0 (TypeScript)            | ✅ 実装済み | モダンで高速な開発環境。コンポーネントベースで拡張性が高い。       |
-| **ビルドツール**   | Vite 6.2.0                             | ✅ 実装済み | 高速なHMRと最適化されたビルド。開発サーバーはポート3000で起動。     |
-| **スタイリング**   | Tailwind CSS (CDN)                     | ✅ 実装済み | ユーティリティファーストで迅速なUI構築が可能。レスポンシブ対応が容易。 |
-| **フォント**      | M PLUS Rounded 1c (Google Fonts)      | ✅ 実装済み | 子ども向けの親しみやすい丸ゴシックフォント。                       |
-| **状態管理**     | Zustand 5.0.0-beta.2                   | ✅ 実装済み | シンプルで軽量な状態管理。認証とユーザー情報の管理に使用。         |
-| **型システム**    | TypeScript 5.8.2                       | ✅ 実装済み | 型安全性を確保し、開発効率を向上。                                 |
-| **パッケージ管理** | npm/yarn (ES Modules)                  | ✅ 実装済み | モダンなESM対応のパッケージ管理。                                  |
-| **バックエンド**   | Firebase (準備中)                      | ⏸️ 未実装 | サーバーレスで迅速な開発が可能。現在はダミー認証で動作。           |
-| **AIチャットボット** | Google Gemini API                      | 🔧 準備中 | 環境変数設定済み。統合は今後実装予定。                             |
-| **ホスティング**   | 未定 (Vercel / Netlify推薦)            | ⏸️ 未実装 | Git連携による簡単なデプロイとプレビュー環境が便利。                |
-
-### 現在の開発環境設定
-
-- **Node.js**: ES2022をターゲットにトランスパイル
-- **開発サーバー**: Vite Dev Server (localhost:3000, host: 0.0.0.0)
-- **モジュール解決**: Bundler方式、`@/*` パスエイリアスでルートディレクトリを参照
-- **JSX**: React 19の新しいJSXランタイム (`react-jsx`)
-- **パッケージ配信**: AI Studio CDN経由でReact/Zustandを配信（importmap使用）
+- **AIメンターチャットボット:** Gemini APIによる学習サポート
+- **サブスクリプション:** Stripe連携による有料プラン
+- **ファミリープラン:** 保護者向け機能
+- **プッシュ通知:** 学習リマインダー
 
 ---
 
-## 4. ファイル構成（現在の実装状況）
+## 3. 技術スタック
 
-スケーラビリティとメンテナンス性を考慮したファイル構成です。
+| カテゴリ | 技術 | バージョン | 説明 |
+| :--- | :--- | :--- | :--- |
+| **フロントエンド** | React + TypeScript | 19.x / 5.x | コンポーネントベースのUI |
+| **ビルドツール** | Vite | 6.x | 高速なHMRとビルド |
+| **スタイリング** | Tailwind CSS | 4.x | ユーティリティファーストCSS |
+| **状態管理** | Zustand | 5.x | 軽量な状態管理 |
+| **ルーティング** | React Router | 7.x | SPA ルーティング |
+| **フォーム** | React Hook Form + Zod | - | バリデーション付きフォーム |
+| **バックエンド** | Supabase | - | 認証、DB、ストレージ |
+| **アニメーション** | Framer Motion | - | UIアニメーション |
+| **PWA** | Vite PWA Plugin | - | Service Worker、オフライン対応 |
+| **多言語** | react-i18next | - | 国際化 |
+
+---
+
+## 4. ファイル構成
 
 ```
-/ (アプリケーションルート)
-├── index.html               # ✅ メインのHTMLファイル (Tailwind CDN, Google Fonts設定済み)
-├── index.tsx                # ✅ Reactアプリケーションのエントリーポイント
-├── App.tsx                  # ✅ メインアプリケーションコンポーネント (ルーティングロジック実装済み)
-├── types.ts                 # ✅ TypeScriptの型定義 (User, Badge型定義済み)
+/
+├── index.html                 # メインHTML
+├── index.tsx                  # エントリーポイント
+├── App.tsx                    # ルーティング設定
+├── types/                     # TypeScript型定義
 │
-├── components/              # ✅ 再利用可能なUIコンポーネント
-│   ├── common/              # ✅ 汎用的なコンポーネント
-│   │   ├── Button.tsx       # ✅ ボタンコンポーネント
-│   │   ├── Input.tsx        # ✅ 入力フォームコンポーネント
-│   │   └── Card.tsx         # ✅ カードレイアウトコンポーネント
-│   ├── layout/              # ✅ レイアウト関連
-│   │   └── Header.tsx       # ✅ ヘッダーコンポーネント (認証状態に応じた表示切替)
-│   ├── dashboard/           # ✅ ダッシュボード固有のコンポーネント
-│   │   ├── StatCard.tsx     # ✅ 統計カード (XP, レベル、連続ログイン表示)
-│   │   └── BadgeIcon.tsx    # ✅ バッジアイコン
-│   └── creations/           # ✅ クリエイターズワールド固有のコンポーネント
-│       └── CreationCard.tsx # ✅ 作品カード
+├── components/                # 再利用可能コンポーネント
+│   ├── common/                # Button, Input, Card, LazyImage等
+│   ├── layout/                # Header, Sidebar
+│   ├── admin/                 # 管理画面用コンポーネント
+│   ├── creations/             # クリエイターズワールド用
+│   ├── routes/                # AdminRoute等
+│   └── icons.tsx              # 共有SVGアイコン
 │
-├── pages/                   # ✅ 各ページのコンポーネント
-│   ├── HomePage.tsx         # ✅ ホームページ (ランディングページ)
-│   ├── LoginPage.tsx        # ✅ ログインページ
-│   ├── RegisterPage.tsx     # ✅ 新規登録ページ
-│   ├── DashboardPage.tsx    # ✅ ダッシュボードページ (学習進捗、バッジ表示)
-│   ├── CoursePage.tsx       # ✅ コースページ (レッスン一覧、ビデオ埋め込み)
-│   └── CreationsPage.tsx    # ✅ クリエイターズワールドページ
+├── pages/                     # ページコンポーネント
+│   ├── HomePage.tsx           # ランディングページ
+│   ├── LoginPage.tsx          # ログイン
+│   ├── RegisterPage.tsx       # 新規登録
+│   ├── DashboardPage.tsx      # ダッシュボード
+│   ├── CoursePage.tsx         # コース詳細
+│   ├── LevelLessonsPage.tsx   # レベル内レッスン一覧
+│   ├── LessonViewPage.tsx     # レッスン視聴
+│   ├── CreationsPage.tsx      # クリエイターズワールド
+│   ├── CreationDetailPage.tsx # 作品詳細
+│   ├── MyCreationsPage.tsx    # マイ作品一覧
+│   ├── CreateCreationPage.tsx # 作品投稿
+│   ├── EditCreationPage.tsx   # 作品編集
+│   ├── ProfilePage.tsx        # プロフィール
+│   ├── SettingsPage.tsx       # 設定
+│   ├── Admin*.tsx             # 管理画面各種
+│   └── ...
 │
-├── store/                   # ✅ 状態管理
-│   └── authStore.ts         # ✅ 認証ストア (Zustand, ダミー認証実装済み)
+├── services/                  # API通信
+│   ├── supabaseService.ts     # Supabase操作
+│   ├── adminService.ts        # 管理者用操作
+│   └── subscriptionService.ts # サブスクリプション（準備中）
 │
-├── services/                # ⏸️ 外部APIとの通信ロジック
-│   └── firebaseService.ts   # ⏸️ Firebase関連の処理 (将来の実装のため保留中)
+├── store/                     # 状態管理
+│   ├── authStore.ts           # 認証状態
+│   ├── sidebarStore.ts        # サイドバー状態
+│   └── settingsStore.ts       # ユーザー設定
 │
-├── .env.local               # ✅ 環境変数 (GEMINI_API_KEY設定済み)
-├── .gitignore               # ✅ Git除外設定
-├── package.json             # ✅ 依存関係とスクリプト定義
-├── tsconfig.json            # ✅ TypeScript設定
-├── vite.config.ts           # ✅ Vite設定 (パスエイリアス、環境変数設定)
-├── metadata.json            # ✅ プロジェクトメタデータ
-├── README.md                # ✅ プロジェクト概要
-└── ROADMAP.md               # ✅ 開発ロードマップ (本ファイル)
+├── utils/                     # ユーティリティ
+│   ├── avatarHelpers.ts       # DiceBearアバター
+│   ├── embedHelpers.ts        # 埋め込みURL処理
+│   ├── sanitizeHelpers.ts     # HTMLサニタイズ
+│   └── fileValidation.ts      # ファイルバリデーション
+│
+├── schemas/                   # Zodスキーマ
+├── i18n/                      # 多言語設定
+│
+├── supabase/                  # データベース
+│   ├── migrations/            # マイグレーションSQL
+│   └── schema_current.sql     # 現在のスキーマ
+│
+└── docs/                      # ドキュメント
 ```
 
-### 実装済みの主要機能
+---
 
-#### 認証システム (ダミー実装)
-- [authStore.ts](store/authStore.ts) - Zustandによる状態管理
-- ログイン、新規登録、ログアウト機能
-- ダミーユーザーデータ生成
+## 5. データベース構造
 
-#### ページ構成
-- **未認証時**: [HomePage.tsx](pages/HomePage.tsx), [LoginPage.tsx](pages/LoginPage.tsx), [RegisterPage.tsx](pages/RegisterPage.tsx)
-- **認証後**: [DashboardPage.tsx](pages/DashboardPage.tsx), [CoursePage.tsx](pages/CoursePage.tsx), [CreationsPage.tsx](pages/CreationsPage.tsx)
+### 主要テーブル
 
-#### ゲーミフィケーション要素
-- XP（経験値）とレベルシステム
-- 連続ログイン記録
-- バッジ獲得機能（5種類のバッジテンプレート実装済み）
-- 学習進捗追跡
+- **users** - ユーザー情報、XP、レベル、バッジ
+- **courses** - コース情報
+- **levels** - レベル情報（コース内の中間層）
+- **lessons** - レッスン情報
+- **user_progress** - レッスン進捗
+- **user_level_progress** - レベル進捗
+- **badge_templates** - バッジテンプレート
+- **creations** - ユーザー作品
+- **creation_likes** - いいね
+- **plans** - サブスクリプションプラン
+- **subscriptions** - ユーザーサブスクリプション
 
-*注: ユーザーの指示に従い、`src/`ディレクトリは作成せず、ルートを開発の起点としています。*
+詳細は [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) を参照。
 
 ---
 
-## 5. 開発タイムライン（案）
+## 6. 開発ガイド
 
-### フェーズ1: 基盤構築とMVP（無料版） (1〜2ヶ月)
+### 環境構築
 
-1.  **Week 1-2:** プロジェクト設定、UIデザインシステムの構築（基本コンポーネントの作成）。
-2.  **Week 3-4:** Firebaseを利用したユーザー認証機能の実装。
-3.  **Week 5-6:** ダッシュボード、コース一覧、ビデオレッスン視聴ページの作成。
-4.  **Week 7-8:** 学習進捗管理機能と基本的なゲーミフィケーション（連続ログイン、バッジ）の実装、デプロイ。
+```bash
+# 依存関係インストール
+npm install
 
-### フェーズ2: 機能拡充と有料版準備 (2〜3ヶ月)
+# 開発サーバー起動
+npm run dev
 
-1.  **Month 3:** AIチャットボット機能のプロトタイプ開発と組み込み。「クリエイターズワールド」機能の追加。
-2.  **Month 4:** 有料プランの設計と決済システム（Stripeなど）の連携。
-3.  **Month 5:** 上級コースのコンテンツ準備と、有料ユーザー向け機能（ランキング、限定アイテム）の開発。
+# 本番ビルド
+npm run build
+```
 
-### フェーズ3: さらなる発展 (継続的に)
+### 環境変数 (.env.local)
 
-- 保護者向けダッシュボード機能の追加。
-- 学習リマインダーなどの通知機能。
-- ユーザー同士が交流できるコミュニティ機能の検討。
+```bash
+VITE_SUPABASE_URL=https://xxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+詳細は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) を参照。
 
 ---
 
-## 次のステップ
+## 7. ドキュメント一覧
 
-このロードマップに基づき、最初の開発ステップとして**「フェーズ1」**に着手します。
-具体的には、**React + TypeScript + Vite + Tailwind CSS** を用いたプロジェクトの初期設定を行い、基本的なレイアウトコンポーネント（ヘッダー、フッターなど）と、主要なページ（ホームページ、ログインページ）の雛形を作成します。
+| ファイル | 内容 |
+| :--- | :--- |
+| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | 開発環境ガイド |
+| [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | データベース設計 |
+| [ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md) | 管理者機能 |
+| [PWA_GUIDE.md](docs/PWA_GUIDE.md) | PWA使用方法 |
+| [I18N_GUIDE.md](docs/I18N_GUIDE.md) | 多言語対応 |
+| [ACCESSIBILITY_GUIDE.md](docs/ACCESSIBILITY_GUIDE.md) | アクセシビリティ |

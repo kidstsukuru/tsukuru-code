@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import GalaxyBackground from '../components/creations/GalaxyBackground';
 import CreationCard from '../components/creations/CreationCard';
+import { PlayIcon } from '../components/icons';
 import {
   getCreationById,
   likeCreation,
@@ -14,17 +15,12 @@ import {
   getUserCreations
 } from '../services/supabaseService';
 import { useAuthStore } from '../store/authStore';
+import { getVisitorId, addLocalLike, removeLocalLike, isLocallyLiked } from '../utils/visitorId';
 import type { Creation } from '../types';
 
 const HeartIcon = ({ filled, ...props }: React.SVGProps<SVGSVGElement> & { filled?: boolean }) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-  </svg>
-);
-
-const PlayIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-    <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.647c1.295.742 1.295 2.545 0 3.286L7.279 20.99c-1.25.717-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
   </svg>
 );
 
@@ -60,8 +56,15 @@ const CreationDetailPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const data = await getCreationById(id, user?.uid);
-      setCreation(data);
+      const visitorId = getVisitorId();
+      const data = await getCreationById(id, user?.uid, !user ? visitorId : undefined);
+
+      // ローカルストレージのいいね状態も確認（フォールバック）
+      const localLiked = isLocallyLiked(id);
+      setCreation({
+        ...data,
+        is_liked: data.is_liked || localLiked,
+      });
 
       // 再生回数を記録
       await recordPlay(id, user?.uid);
@@ -81,29 +84,37 @@ const CreationDetailPage: React.FC = () => {
   };
 
   const handleLike = async () => {
-    if (!user) {
-      toast.error(t('auth.loginTitle'));
-      navigate('/login');
-      return;
-    }
-
     if (!creation || isLiking) return;
 
     try {
       setIsLiking(true);
+      const visitorId = getVisitorId();
 
       if (creation.is_liked) {
         // いいねを解除
-        await unlikeCreation(user.uid, creation.id);
+        try {
+          await unlikeCreation(user?.uid || null, creation.id, !user ? visitorId : undefined);
+        } catch {
+          // データベースエラーは無視（ローカルストレージのみで処理）
+        }
+        removeLocalLike(creation.id);
         setCreation({
           ...creation,
           is_liked: false,
-          likes: creation.likes - 1,
+          likes: Math.max(0, creation.likes - 1),
         });
         toast.success(t('creations.unlike'));
       } else {
         // いいねを追加
-        await likeCreation(user.uid, creation.id);
+        try {
+          await likeCreation(user?.uid || null, creation.id, !user ? visitorId : undefined);
+        } catch (error: any) {
+          // 既にいいね済みエラーは許容（ローカルストレージで処理）
+          if (!error.message?.includes('既にいいね済み')) {
+            console.warn('Like creation failed, using local storage fallback:', error);
+          }
+        }
+        addLocalLike(creation.id);
         setCreation({
           ...creation,
           is_liked: true,
@@ -270,8 +281,8 @@ const CreationDetailPage: React.FC = () => {
                 onClick={handleLike}
                 disabled={isLiking}
                 className={`w-full relative overflow-hidden group px-6 py-4 rounded-xl font-bold transition-all transform active:scale-95 ${creation.is_liked
-                    ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.4)]'
-                    : 'bg-slate-800 hover:bg-slate-700 text-gray-200 border border-white/10'
+                  ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.4)]'
+                  : 'bg-slate-800 hover:bg-slate-700 text-gray-200 border border-white/10'
                   } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="relative z-10 flex items-center justify-center gap-3">

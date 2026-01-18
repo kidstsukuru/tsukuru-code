@@ -6,21 +6,10 @@ import { motion } from 'framer-motion';
 import CreationCard from '../components/creations/CreationCard';
 import GalaxyBackground from '../components/creations/GalaxyBackground';
 import LazyImage from '../components/common/LazyImage';
+import { PlayIcon, PlusIcon } from '../components/icons';
 import { getCreations } from '../services/supabaseService';
 import { useAuthStore } from '../store/authStore';
 import type { Creation } from '../types';
-
-const PlayIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-    <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.647c1.295.742 1.295 2.545 0 3.286L7.279 20.99c-1.25.717-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
-  </svg>
-);
-
-const PlusIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-  </svg>
-);
 
 const CreationsPage: React.FC = () => {
   const { t } = useTranslation();

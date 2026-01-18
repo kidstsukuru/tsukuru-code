@@ -1,236 +1,283 @@
 # データベーススキーマ設計
 
-最終更新: 2025-12-02
+最終更新: 2026-01-17
 
 ---
 
-## 📊 テーブル構成
+## テーブル一覧
 
-### 1. `users` テーブル ✅ (実装済み)
+| テーブル名 | 説明 |
+|-----------|------|
+| users | ユーザー情報 |
+| courses | コース情報 |
+| levels | レベル情報（コース内の中間層） |
+| lessons | レッスン情報 |
+| user_progress | レッスン進捗 |
+| user_level_progress | レベル進捗 |
+| badge_templates | バッジテンプレート |
+| creations | ユーザー作品 |
+| creation_likes | 作品へのいいね |
+| plans | サブスクリプションプラン |
+| subscriptions | ユーザーサブスクリプション |
+
+---
+
+## users テーブル
 
 ユーザーの基本情報を保存
 
-| カラム名 | 型 | 制約 | 説明 |
-|---------|-----|------|------|
-| id | UUID | PRIMARY KEY | ユーザーID（auth.usersと連携） |
-| name | TEXT | NOT NULL | ユーザー名 |
-| email | TEXT | NOT NULL, UNIQUE | メールアドレス |
-| login_streak | INTEGER | DEFAULT 1 | ログイン連続日数 |
-| xp | INTEGER | DEFAULT 0 | 経験値 |
-| level | INTEGER | DEFAULT 1 | レベル |
-| badges | JSONB | DEFAULT '[]' | 獲得バッジ情報（配列） |
-| progress | JSONB | DEFAULT '{}' | 学習進捗情報（オブジェクト） |
-| created_at | TIMESTAMP | DEFAULT NOW() | 作成日時 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新日時 |
-
-**RLSポリシー:**
-- ユーザーは自分のデータのみ参照・更新可能
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | UUID | PRIMARY KEY（auth.usersと連携） |
+| name | TEXT | ユーザー名 |
+| email | TEXT | メールアドレス（UNIQUE） |
+| role | TEXT | ロール（student/admin/super_admin） |
+| login_streak | INTEGER | ログイン連続日数 |
+| xp | INTEGER | 経験値 |
+| level | INTEGER | レベル |
+| badges | JSONB | 獲得バッジ情報 |
+| avatar_style | TEXT | DiceBearアバタースタイル |
+| avatar_seed | TEXT | DiceBearアバターシード |
+| is_active | BOOLEAN | アカウント有効状態 |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
 
 ---
 
-### 2. `courses` テーブル
+## courses テーブル
 
 コース情報を保存
 
-| カラム名 | 型 | 制約 | 説明 |
-|---------|-----|------|------|
-| id | TEXT | PRIMARY KEY | コースID（例: scratch-intro） |
-| title | TEXT | NOT NULL | コースタイトル |
-| description | TEXT | | コース説明 |
-| icon | TEXT | | アイコン（emoji） |
-| difficulty | TEXT | | 難易度（beginner/intermediate/advanced） |
-| estimated_hours | INTEGER | | 推定学習時間 |
-| is_published | BOOLEAN | DEFAULT false | 公開状態 |
-| order_index | INTEGER | DEFAULT 0 | 表示順序 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 作成日時 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新日時 |
-
-**RLSポリシー:**
-- 誰でも公開されたコースを参照可能
-- 管理者のみ作成・更新可能
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | TEXT | PRIMARY KEY（例: scratch-intro） |
+| title | TEXT | コースタイトル |
+| description | TEXT | コース説明 |
+| icon | TEXT | アイコン（絵文字） |
+| difficulty | TEXT | 難易度 |
+| estimated_hours | INTEGER | 推定学習時間 |
+| is_published | BOOLEAN | 公開状態 |
+| order_index | INTEGER | 表示順序 |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
 
 ---
 
-### 3. `lessons` テーブル
+## levels テーブル
+
+コース内のレベル（中間層）
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | TEXT | PRIMARY KEY |
+| course_id | TEXT | 所属コースID（FK） |
+| title | TEXT | レベルタイトル |
+| description | TEXT | レベル説明 |
+| level_number | INTEGER | 順番（1, 2, 3...） |
+| bonus_xp | INTEGER | 完了時ボーナスXP |
+| is_published | BOOLEAN | 公開状態 |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
+
+---
+
+## lessons テーブル
 
 レッスン情報を保存
 
-| カラム名 | 型 | 制約 | 説明 |
-|---------|-----|------|------|
-| id | TEXT | PRIMARY KEY | レッスンID（例: lesson-1） |
-| course_id | TEXT | NOT NULL, FK | コースID |
-| title | TEXT | NOT NULL | レッスンタイトル |
-| description | TEXT | | レッスン説明 |
-| content | JSONB | | レッスンコンテンツ（HTML/JSON） |
-| order_index | INTEGER | DEFAULT 0 | コース内での順序 |
-| xp_reward | INTEGER | DEFAULT 10 | クリア時の経験値 |
-| is_published | BOOLEAN | DEFAULT false | 公開状態 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 作成日時 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新日時 |
-
-**外部キー:**
-- `course_id` → `courses(id)` ON DELETE CASCADE
-
-**RLSポリシー:**
-- 誰でも公開されたレッスンを参照可能
-- 管理者のみ作成・更新可能
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | TEXT | PRIMARY KEY |
+| course_id | TEXT | 所属コースID（FK） |
+| level_id | TEXT | 所属レベルID（FK） |
+| title | TEXT | レッスンタイトル |
+| description | TEXT | レッスン説明 |
+| content | JSONB | レッスンコンテンツ（リッチテキスト） |
+| youtube_url | TEXT | YouTube動画URL |
+| order_index | INTEGER | 表示順序 |
+| xp_reward | INTEGER | 完了時XP報酬 |
+| duration_minutes | INTEGER | 所要時間（分） |
+| is_published | BOOLEAN | 公開状態 |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
 
 ---
 
-### 4. `user_progress` テーブル
+## user_progress テーブル
 
-ユーザーの学習進捗を保存
+レッスン進捗を追跡
 
-| カラム名 | 型 | 制約 | 説明 |
-|---------|-----|------|------|
-| id | UUID | PRIMARY KEY | 進捗ID |
-| user_id | UUID | NOT NULL, FK | ユーザーID |
-| lesson_id | TEXT | NOT NULL, FK | レッスンID |
-| course_id | TEXT | NOT NULL, FK | コースID |
-| completed | BOOLEAN | DEFAULT false | 完了フラグ |
-| completed_at | TIMESTAMP | | 完了日時 |
-| score | INTEGER | | スコア（0-100） |
-| attempts | INTEGER | DEFAULT 0 | 試行回数 |
-| time_spent | INTEGER | DEFAULT 0 | 学習時間（秒） |
-| created_at | TIMESTAMP | DEFAULT NOW() | 作成日時 |
-| updated_at | TIMESTAMP | DEFAULT NOW() | 更新日時 |
-
-**ユニーク制約:**
-- `UNIQUE(user_id, lesson_id)` - 1ユーザー1レッスンにつき1レコード
-
-**外部キー:**
-- `user_id` → `users(id)` ON DELETE CASCADE
-- `lesson_id` → `lessons(id)` ON DELETE CASCADE
-- `course_id` → `courses(id)` ON DELETE CASCADE
-
-**インデックス:**
-- `user_id`, `course_id` の複合インデックス（コース進捗確認用）
-
-**RLSポリシー:**
-- ユーザーは自分の進捗のみ参照・更新可能
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | UUID | PRIMARY KEY |
+| user_id | UUID | ユーザーID（FK） |
+| lesson_id | TEXT | レッスンID（FK） |
+| completed | BOOLEAN | 完了フラグ |
+| completed_at | TIMESTAMP | 完了日時 |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
 
 ---
 
-### 5. `badge_templates` テーブル
+## user_level_progress テーブル
 
-バッジのマスターデータ
+レベル進捗を追跡
 
-| カラム名 | 型 | 制約 | 説明 |
-|---------|-----|------|------|
-| id | TEXT | PRIMARY KEY | バッジID（例: login_5_days） |
-| name | TEXT | NOT NULL | バッジ名 |
-| description | TEXT | | バッジ説明 |
-| icon | TEXT | NOT NULL | アイコン（emoji） |
-| category | TEXT | | カテゴリ（login/course/achievement） |
-| condition_type | TEXT | | 条件タイプ（login_streak/lessons_completed） |
-| condition_value | INTEGER | | 条件値 |
-| xp_reward | INTEGER | DEFAULT 0 | 獲得時の経験値 |
-| order_index | INTEGER | DEFAULT 0 | 表示順序 |
-| created_at | TIMESTAMP | DEFAULT NOW() | 作成日時 |
-
-**RLSポリシー:**
-- 誰でも参照可能
-- 管理者のみ作成・更新可能
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | UUID | PRIMARY KEY |
+| user_id | UUID | ユーザーID（FK） |
+| level_id | TEXT | レベルID（FK） |
+| is_completed | BOOLEAN | 完了フラグ |
+| completed_at | TIMESTAMP | 完了日時 |
+| bonus_xp_awarded | BOOLEAN | ボーナスXP付与済み |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
 
 ---
 
-### 6. `user_badges` テーブル
+## badge_templates テーブル
 
-ユーザーが獲得したバッジ
+バッジの定義
 
-| カラム名 | 型 | 制約 | 説明 |
-|---------|-----|------|------|
-| id | UUID | PRIMARY KEY | レコードID |
-| user_id | UUID | NOT NULL, FK | ユーザーID |
-| badge_id | TEXT | NOT NULL, FK | バッジID |
-| acquired_at | TIMESTAMP | DEFAULT NOW() | 獲得日時 |
-
-**ユニーク制約:**
-- `UNIQUE(user_id, badge_id)` - 1ユーザー1バッジにつき1レコード
-
-**外部キー:**
-- `user_id` → `users(id)` ON DELETE CASCADE
-- `badge_id` → `badge_templates(id)` ON DELETE CASCADE
-
-**RLSポリシー:**
-- ユーザーは自分のバッジのみ参照可能
-- バッジ獲得時は自分のレコードのみ挿入可能
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | TEXT | PRIMARY KEY（例: first-lesson） |
+| name | TEXT | バッジ名 |
+| description | TEXT | バッジ説明 |
+| icon | TEXT | アイコン（絵文字） |
+| category | TEXT | カテゴリ |
+| condition_type | TEXT | 条件タイプ |
+| condition_value | INTEGER | 条件値 |
+| xp_reward | INTEGER | 獲得時XP |
+| order_index | INTEGER | 表示順序 |
+| created_at | TIMESTAMP | 作成日時 |
 
 ---
 
-## 🔄 データフロー
+## creations テーブル
 
-### 学習進捗の更新
-1. ユーザーがレッスンを完了
-2. `user_progress` テーブルに進捗を記録
-3. `users` テーブルのXPとレベルを更新
-4. 条件達成時にバッジを自動付与
+ユーザー作品
 
-### バッジ獲得
-1. 条件チェック（ログイン連続日数、完了レッスン数など）
-2. 条件達成時に`user_badges`に挿入
-3. `users` テーブルのXPを更新
-4. バッジ獲得アニメーションを表示
-
----
-
-## 📝 実装フェーズ
-
-### Phase 1: 基本テーブル作成 ✅
-- [x] `users` テーブル
-
-### Phase 2: コンテンツ管理（今回実装）
-- [ ] `courses` テーブル
-- [ ] `lessons` テーブル
-- [ ] `user_progress` テーブル
-- [ ] `badge_templates` テーブル
-- [ ] `user_badges` テーブル
-
-### Phase 3: サンプルデータ投入
-- [ ] サンプルコースの作成
-- [ ] サンプルレッスンの作成
-- [ ] バッジテンプレートの作成
-
-### Phase 4: リアルタイム同期
-- [ ] Supabase Realtimeの設定
-- [ ] 進捗更新のリアルタイム反映
-- [ ] バッジ獲得通知
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | UUID | PRIMARY KEY |
+| user_id | UUID | 作成者ID（FK） |
+| title | TEXT | 作品タイトル |
+| description | TEXT | 作品説明 |
+| thumbnail_url | TEXT | サムネイルURL |
+| game_url | TEXT | ゲームURL |
+| embed_code | TEXT | 埋め込みコード |
+| play_count | INTEGER | 再生数 |
+| like_count | INTEGER | いいね数 |
+| is_published | BOOLEAN | 公開状態 |
+| created_at | TIMESTAMP | 作成日時 |
+| updated_at | TIMESTAMP | 更新日時 |
 
 ---
 
-## 🔐 セキュリティ考慮事項
+## creation_likes テーブル
 
-1. **Row Level Security (RLS)**
-   - すべてのテーブルでRLSを有効化
-   - ユーザーは自分のデータのみアクセス可能
+作品へのいいね
 
-2. **データバリデーション**
-   - CHECK制約でデータの整合性を保証
-   - XPは負の値を取らない
-   - スコアは0-100の範囲内
-
-3. **トリガー**
-   - `updated_at` の自動更新
-   - レベルアップの自動計算
-   - バッジ条件の自動チェック
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | UUID | PRIMARY KEY |
+| user_id | UUID | ユーザーID（FK） |
+| creation_id | UUID | 作品ID（FK） |
+| created_at | TIMESTAMP | 作成日時 |
 
 ---
 
-## 🚀 パフォーマンス最適化
+## plans テーブル
 
-1. **インデックス**
-   - `user_id` による検索を高速化
-   - `course_id` と `user_id` の複合インデックス
+サブスクリプションプラン
 
-2. **キャッシュ戦略**
-   - コース・レッスン情報はクライアント側でキャッシュ
-   - 進捗情報は定期的に同期
-
-3. **クエリ最適化**
-   - JOINを使った効率的なデータ取得
-   - 必要なカラムのみSELECT
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | UUID | PRIMARY KEY |
+| name | TEXT | プラン名（free/basic/premium/family） |
+| display_name | TEXT | 表示名 |
+| description | TEXT | プラン説明 |
+| price | INTEGER | 月額価格（円） |
+| features | JSONB | 機能制限 |
+| is_active | BOOLEAN | 有効状態 |
+| display_order | INTEGER | 表示順序 |
 
 ---
 
-**更新履歴**
-- 2025-12-02: 初版作成
+## subscriptions テーブル
+
+ユーザーサブスクリプション
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | UUID | PRIMARY KEY |
+| user_id | UUID | ユーザーID（FK） |
+| plan_id | UUID | プランID（FK） |
+| status | TEXT | ステータス（active/canceled等） |
+| current_period_start | TIMESTAMP | 現在の期間開始日 |
+| current_period_end | TIMESTAMP | 現在の期間終了日 |
+| cancel_at_period_end | BOOLEAN | 期間終了時キャンセル |
+| canceled_at | TIMESTAMP | キャンセル日時 |
+| stripe_customer_id | TEXT | Stripe顧客ID |
+| stripe_subscription_id | TEXT | StripeサブスクリプションID |
+
+---
+
+## Row Level Security (RLS)
+
+全テーブルでRLSが有効化されています。
+
+### 基本ポリシー
+
+- **一般ユーザー**: 公開データのみ閲覧、自分のデータのみ更新
+- **管理者**: 全データの閲覧・編集
+- **スーパー管理者**: 全データの閲覧・編集・削除
+
+### 例: coursesテーブル
+
+```sql
+-- 公開コースは誰でも閲覧可能
+CREATE POLICY "Anyone can view published courses"
+  ON courses FOR SELECT
+  USING (is_published = true);
+
+-- 管理者は全コース閲覧可能
+CREATE POLICY "Admins can view all courses"
+  ON courses FOR SELECT
+  USING (is_admin());
+
+-- 管理者のみ作成・更新可能
+CREATE POLICY "Admins can insert courses"
+  ON courses FOR INSERT
+  WITH CHECK (is_admin());
+```
+
+---
+
+## マイグレーション
+
+マイグレーションファイルは `supabase/migrations/` に格納:
+
+| ファイル | 内容 |
+|---------|------|
+| 006_fixed_order.sql | 初期スキーマ |
+| 007_cleanup_database.sql | データベースクリーンアップ |
+| 008_fix_users_rls.sql | ユーザーRLS修正 |
+| 009_fix_all_rls_policies.sql | RLSポリシー修正 |
+| 010_create_levels_table.sql | levelsテーブル作成 |
+| 011_add_level_to_lessons.sql | レッスンにlevel_id追加 |
+| 012_create_initial_levels.sql | 初期レベルデータ |
+| 013_create_creations_tables.sql | 作品関連テーブル |
+| 014_add_is_active_to_users.sql | ユーザーis_active追加 |
+| 015_create_subscription_tables.sql | サブスクリプション関連 |
+| 016_create_user_trigger.sql | ユーザー作成トリガー |
+| 017_backfill_existing_users.sql | 既存ユーザーバックフィル |
+
+---
+
+## 関連ドキュメント
+
+- [ADMIN_GUIDE.md](./ADMIN_GUIDE.md) - 管理者機能
+- [DEVELOPMENT.md](./DEVELOPMENT.md) - 開発環境ガイド
